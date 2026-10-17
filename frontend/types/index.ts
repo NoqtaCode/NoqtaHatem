@@ -19,4 +19,6 @@ export type SiteSettings = {
   aboutImageUrl?: string;
   logoImageUrl?: string;
   heroImageUrl?: string;
+  categoryHomeImages?: Record<string, { asset?: { _ref?: string } }>;
+  categoryHomeImageUrls?: Record<string, string>;
 };

@@ -141,12 +141,11 @@ export default function ProjectUploadForm() {
         <label className="block text-sm font-black text-slate-700 mb-3 pr-2">القسم *</label>
         <select name="category" required defaultValue="" className="w-full border-2 border-gray-100 rounded-2xl p-4 focus:border-blue-500 outline-none bg-gray-50/50 text-black">
           <option value="" disabled>-- اختر القسم --</option>
-          <option value="shabouk">أعمال الشبوك والمزارع</option>
-          <option value="nakheel">تنسيق النخيل والحدائق</option>
-          <option value="hanajer">الهناجر والمستودعات</option>
-          <option value="sawater">سواتر ومظلات</option>
-          <option value="hajar">أعمال الحجر الطبيعي</option>
-          <option value="other">أخرى</option>
+          <option value="palms">النخيل</option>
+          <option value="fences">الشبوك</option>
+          <option value="trees">الأشجار</option>
+          <option value="olives">الزيتون</option>
+          <option value="structures">الهناجر والمظلات</option>
         </select>
       </div>
 

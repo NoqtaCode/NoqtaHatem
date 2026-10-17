@@ -21,11 +21,11 @@ export default function NewGalleryUpload() {
             <label className="block text-sm font-black text-slate-700 mb-3">تصنيف الصور المرفوعة *</label>
             <select name="category" required defaultValue="" className="w-full border-2 border-gray-100 rounded-2xl p-4 bg-gray-50/50 text-black outline-none focus:border-blue-500">
               <option value="" disabled>-- اختر القسم --</option>
-              <option value="shabouk">شبوك ومزارع</option>
-              <option value="nakheel">نخيل وحدائق</option>
-              <option value="hanajer">هناجر ومستودعات</option>
-              <option value="sawater">سواتر ومظلات</option>
-              <option value="hajar">حجر طبيعي</option>
+              <option value="palms">النخيل</option>
+              <option value="fences">الشبوك</option>
+              <option value="trees">الأشجار</option>
+              <option value="olives">الزيتون</option>
+              <option value="structures">الهناجر والمظلات</option>
             </select>
           </div>
 

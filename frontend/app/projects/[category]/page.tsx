@@ -1,87 +1,80 @@
-import { safeFetch, type SiteSettings } from "../../../lib/sanity";
-import Navbar from "../../../components/layout/Navbar";
-import Footer from "../../../components/layout/Footer";
-import GalleryPreview from "../../../components/sections/GalleryPreview";
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Home } from "lucide-react";
-
-const getTitle = (cat: string) => {
-  if (cat === 'all') return "معرض الأعمال الشامل";
-  
-  const titles: any = {
-    shabouk: "ألبوم أعمال الشبوك والمزارع",
-    nakheel: "ألبوم تنسيق الحدائق والنخيل",
-    hanajer: "ألبوم الهناجر والمستودعات",
-    sawater: "ألبوم السواتر والمظلات",
-    hajar: "ألبوم أعمال الحجر الطبيعي",
-  };
-  return titles[cat] || "معرض الأعمال";
-};
-
+import { ArrowRight, ArrowUpLeft, Images } from "lucide-react";
+import { safeFetch } from "../../../lib/sanity";
+import { categories, getCategory, sanityCategoryValues } from "../../../lib/brand";
+import SiteNavbar from "../../../components/layout/SiteNavbar";
+import Footer from "../../../components/layout/Footer";
+import CategoryGallery from "../../../components/sections/CategoryGallery";
 import type { Metadata } from "next";
 
+export const revalidate = 0;
+
+function resolveCategory(slug: string) {
+  if (slug === "hanajer" || slug === "sawater") return getCategory("structures");
+  return getCategory(slug);
+}
+
 export async function generateMetadata(props: { params: Promise<{ category: string }> }): Promise<Metadata> {
-  const params = await props.params;
-  const title = getTitle(params.category);
-  return {
-    title: `${title} | صور وأعمال ميدانية معتمدة`,
-    description: `استعرض أحدث أعمالنا ومشاريعنا المنجزة في مجال ${title}. تنفيذ بأعلى معايير الجودة وبأفضل الأسعار التنافسية بالمملكة.`,
-    keywords: [title, "مقاولات الرياض", "مشاريع معتمدة", "صور تنفيذ ميداني", "تسوير ومقاولات"],
-  };
+  const { category: slug } = await props.params;
+  const category = resolveCategory(slug);
+  return category ? {
+    title: `أعمال ${category.title}`,
+    description: `${category.description} استعرض نماذج من أعمال سياج ونخيل المملكة.`,
+  } : { title: "معرض الأعمال" };
 }
 
 export default async function FullGalleryPage(props: { params: Promise<{ category: string }> }) {
-  const params = await props.params;
-  const category = params.category;
-  const isAll = category === 'all'; 
+  const { category: slug } = await props.params;
+  const category = resolveCategory(slug);
+  if (!category) notFound();
 
-  const query = isAll 
-    ? `*[_type == "project" && status == "published"] | order(_createdAt desc) {
-        _id, title, "imageUrl": mainImage.asset->url
-      }`
-    : `*[_type == "project" && category == $category && status == "published"] | order(_createdAt desc) {
-        _id, title, "imageUrl": mainImage.asset->url
-      }`;
-
-  const projects = await safeFetch(query, [], isAll ? {} : { category });
-
-  const settings = await safeFetch<SiteSettings | null>(`*[_type == "settings"][0]{ siteName, whatsapp, "logoUrl": logo.asset->url }`, null);
+  const values = sanityCategoryValues[category.slug] ?? [];
+  const images = await safeFetch<{ _id: string; title: string; imageUrl: string }[]>(`
+    *[(_type == "gallery" || (_type == "project" && status == "published")) && category in $values] | order(_createdAt asc) {
+      _id, "title": coalesce(title, ""), "imageUrl": coalesce(image.asset->url, mainImage.asset->url)
+    }
+  `, [], { values });
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans relative" dir="rtl">
-      <Navbar settings={settings} />
-
-      {/* زر العودة العائم */}
-      <div className="fixed bottom-6 right-6 md:bottom-10 md:right-10 z-[150]">
-         <Link 
-           href={isAll ? "/" : `/#${category}`} 
-           className="flex items-center gap-3 bg-emerald-900 text-white px-6 py-4 rounded-full shadow-2xl hover:bg-amber-500 hover:text-emerald-950 transition-all duration-300 group border border-white/10 active:scale-95 animate-bounce"
-         >
-            <span className="font-bold text-sm md:text-base">العودة للرئيسية</span>
-            <Home size={20} />
-         </Link>
-      </div>
-
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-32 md:py-40 w-full relative z-10">
-        
-        <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6 text-center md:text-right">
-           <div>
-             <h1 className="text-4xl md:text-6xl font-black text-slate-900 border-r-0 md:border-r-8 border-amber-500 pr-0 md:pr-6 leading-tight tracking-tight">
-               {getTitle(category)}
-             </h1>
-             <p className="text-slate-500 mt-4 font-bold text-lg">إجمالي الصور المتوفرة: <span className="text-emerald-700">{projects.length}</span></p>
-           </div>
-        </div>
-
-        {projects.length > 0 ? (
-           <GalleryPreview projects={projects} />
-        ) : (
-          <div className="text-center py-40 bg-white rounded-[3rem] text-slate-400 font-bold border-2 border-dashed border-slate-200 shadow-sm">
-             لا توجد صور لعرضها في هذا القسم حالياً.
+    <div className="min-h-screen bg-[#f7f5ef] text-[#172638]" dir="rtl">
+      <SiteNavbar />
+      <main className="pb-24 pt-32 sm:pt-40">
+        <section className="mx-auto max-w-[1440px] px-6 md:px-10">
+          <div className="mb-8 overflow-hidden rounded-[1.75rem] border border-[#e9e5dc] bg-white px-6 py-8 shadow-[0_14px_40px_rgba(7,24,39,0.05)] sm:px-10 sm:py-10">
+            <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+              <div>
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#f5f1e8] px-3.5 py-2 text-xs font-black text-[#9a7436]"><Images size={14} /> معرض {category.title}</span>
+                <h1 className="mt-4 text-3xl font-black leading-tight text-[#102238] sm:text-4xl lg:text-5xl">صور وأعمال من {category.title}</h1>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-[#687587] sm:text-base">تصفّح صور ومشاريع {category.title} المنفذة، واختر الفكرة المناسبة لمشروعك.</p>
+              </div>
+              <span className="shrink-0 rounded-xl border border-[#e9e5dc] bg-[#fbfaf7] px-4 py-3 text-sm font-black text-[#526176]">{images.length} صورة</span>
+            </div>
           </div>
-        )}
-      </main>
 
+          <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
+            <h2 className="text-xl font-black text-[#172638] sm:text-2xl">معرض الصور</h2>
+            <Link href="/gallery" className="inline-flex items-center gap-2 text-sm font-bold text-[#65758a] hover:text-[#071827]">كل المجالات <ArrowUpLeft size={17} /></Link>
+          </div>
+
+          {images.length > 0 ? (
+            <div className="rounded-[1.5rem] border border-[#e9e5dc] bg-white p-3 sm:p-6 lg:p-8">
+              <CategoryGallery images={images} categoryTitle={category.title} />
+            </div>
+          ) : (
+            <div className="rounded-[1.5rem] border border-dashed border-[#d8d4ca] bg-white/60 px-6 py-20 text-center sm:py-28">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e9e5dc] text-[#65758a]"><Images size={23} /></span>
+              <h2 className="mt-5 text-xl font-black">صور المشاريع قريبًا</h2>
+              <p className="mx-auto mt-2 max-w-md text-sm leading-7 text-[#677386]">نعمل على إضافة صور {category.title}. يمكنك استكشاف بقية مجالاتنا حتى ذلك الحين.</p>
+              <div className="mt-6 flex flex-wrap justify-center gap-2">
+                {categories.filter((item) => item.slug !== category.slug).map((item) => <Link key={item.slug} href={`/projects/${item.slug}`} className="rounded-full border border-[#dde2d5] px-4 py-2 text-xs font-bold text-[#51664b] hover:bg-[#e9ede2]">{item.title}</Link>)}
+              </div>
+            </div>
+          )}
+
+          <Link href="/" className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-[#677386] hover:text-[#0b2036]"><ArrowRight size={17} /> العودة للرئيسية</Link>
+        </section>
+      </main>
       <Footer />
     </div>
   );

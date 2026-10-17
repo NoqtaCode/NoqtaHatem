@@ -10,13 +10,23 @@ import { revalidatePath } from "next/cache";
 // Each request is kept small; the client sends as many batches as needed.
 export async function createProjectBatch(formData: FormData): Promise<{ createdIndices: number[]; error?: string }> {
   const title = formData.get('title') as string;
-  const category = formData.get('category') as string;
+  const selectedCategory = formData.get('category') as string;
+  const legacyCategoryMap: Record<string, string> = {
+    nakheel: 'palms',
+    shabouk: 'fences',
+    hanajer: 'structures',
+    sawater: 'structures',
+  };
+  const category = legacyCategoryMap[selectedCategory] || selectedCategory;
   const imageFiles = (formData.getAll('image') as File[]).filter((file) => file.size > 0);
   const imageIndices = formData.getAll('imageIndex').map((value) => Number(value));
   const totalCount = Number(formData.get('totalCount') ?? imageFiles.length);
 
   if (!title || !category || imageFiles.length === 0) {
     return { createdIndices: [], error: 'أدخل عنوان المشروع واختر القسم وصورة واحدة على الأقل.' };
+  }
+  if (!['palms', 'fences', 'trees', 'olives', 'structures', 'hajar', 'other'].includes(category)) {
+    return { createdIndices: [], error: 'اختر قسمًا صحيحًا للمشروع.' };
   }
   if (imageFiles.some((file) => !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) {
     return { createdIndices: [], error: 'استخدم صور JPG أو PNG أو WebP.' };
@@ -66,6 +76,8 @@ export async function createProjectBatch(formData: FormData): Promise<{ createdI
   if (createdIndices.length) {
     revalidatePath('/admin/projects');
     revalidatePath('/');
+    revalidatePath('/gallery');
+    revalidatePath(`/projects/${category}`);
   }
   return {
     createdIndices,

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import Script from "next/script";
-import { safeFetch } from "../lib/sanity";
+import { BRAND_DESCRIPTION, BRAND_NAME } from "../lib/brand";
+import { safeFetchFresh } from "../lib/sanity";
 import "./globals.css";
 
 const cairo = Cairo({ 
@@ -11,36 +12,24 @@ const cairo = Cairo({
 });
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await safeFetch<{ siteName?: string; logoUrl?: string; description?: string }>(
-    `*[_type == "settings"][0]{siteName, "logoUrl": logo.asset->url, description}`,
+  const siteName = BRAND_NAME;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const description = BRAND_DESCRIPTION;
+  const shareImage = "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=85&w=1200&h=630&fit=crop";
+  const logo = await safeFetchFresh<{ logoImageUrl?: string }>(
+    `*[_type == "settings"][0]{"logoImageUrl": logo.asset->url}`,
     {},
   );
-  const siteName = settings?.siteName || "مؤسسة للمقاولات العامة";
-  const logoUrl = settings?.logoUrl || "/logo.png";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://abusaleh-ksa.com";
-  const description = settings?.description || "مؤسسة رائدة في تنفيذ وتوريد الشبوك الزراعية والأمنية، تنسيق حدائق وزراعة النخيل، بناء الهناجر والمستودعات، تركيب السواتر والمظلات، وأعمال الحجر الطبيعي بالمملكة العربية السعودية.";
+  const siteIcon = logo?.logoImageUrl || "/site-logo.png";
 
   return {
-    metadataBase: new URL(siteUrl),
+    ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
     title: {
-      default: `${siteName} | مقاول شبوك، نخيل، هناجر، سواتر ومظلات، وحجر طبيعي`,
+      default: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والمظلات`,
       template: `%s | ${siteName}`,
     },
     description,
-    keywords: [
-      // الشبوك والتسوير
-      "مقاول شبوك", "تركيب شبوك", "شبوك مزارع", "شبوك أمنية", "تسوير مزارع", "تسوير أراضي", "شبوك مجلفنة", "سياج أمني", "مقاول شبوك الرياض", "شبوك شايكة", "شبوك خيول",
-      // النخيل والحدائق
-      "توريد نخيل", "زراعة نخيل", "نخيل واشنطونيا", "تنسيق حدائق", "تنسيق مزارع", "نخيل عربي", "نخيل سكري", "نخيل خلاص", "صيانة نخيل",
-      // الهناجر والمستودعات
-      "بناء هناجر", "مقاول هناجر", "تركيب مستودعات", "هناجر حديد", "هناجر ومستودعات الرياض", "مستودعات تجارية", "تصميم هناجر", "شينكو",
-      // السواتر والمظلات
-      "سواتر ومظلات", "تركيب سواتر", "مظلات سيارات", "سواتر حديد", "سواتر قماش", "مظلات حدائق", "برجولات حدائق", "سواتر ليزر",
-      // الحجر الطبيعي والواجهات
-      "حجر طبيعي", "واجهات حجر", "حجر الرياض", "تركيب حجر طبيعي", "واجهات حجر طبيعي", "حجر مقدسي", "ديكورات حجرية",
-      // عام واستعلام
-      "مؤسسة مقاولات عامة", "مقاول عام", "مقاولات السعودية", "مقاول معتمد", "أسعار الشبوك", "أسعار الهناجر"
-    ],
+    keywords: ["سياج ونخيل المملكة", "زراعة النخيل", "تركيب الشبوك", "زراعة الأشجار", "مزارع الزيتون", "الهناجر والمظلات", "المملكة العربية السعودية"],
     authors: [{ name: siteName }],
     creator: siteName,
     publisher: siteName,
@@ -55,30 +44,19 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       locale: "ar_SA",
-      url: siteUrl,
-      title: `${siteName} | مقاول شبوك، نخيل، هناجر، سواتر ومظلات`,
+      ...(siteUrl ? { url: siteUrl } : {}),
+      title: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والمظلات`,
       description,
       siteName,
-      images: [
-        {
-          url: logoUrl,
-          width: 800,
-          height: 800,
-          alt: siteName,
-        },
-      ],
+      images: [shareImage],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${siteName} | مقاولات عامة وشبوك`,
+      title: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والمظلات`,
       description,
-      images: [logoUrl],
+      images: [shareImage],
     },
-    icons: {
-      icon: logoUrl,
-      apple: logoUrl,
-      shortcut: logoUrl,
-    },
+    icons: { icon: siteIcon, shortcut: siteIcon },
     robots: {
       index: true,
       follow: true,
@@ -90,58 +68,33 @@ export async function generateMetadata(): Promise<Metadata> {
         "max-snippet": -1,
       },
     },
-    verification: {
-      google: [
-        "zLl11yYHn6oidzISCmvInIRxI6_Mphp2KS5yghRZS9Y",
-        "B_oeOP25qHS9h3edl53ZgazK5sDXyAH9qnEZMKPBmG0",
-      ],
-    },
   };
 }
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const settings = await safeFetch<{ siteName?: string; logoUrl?: string; phone?: string; address?: string }>(
-    `*[_type == "settings"][0]{siteName, "logoUrl": logo.asset->url, phone, address}`,
-    {},
-  );
-  const siteName = settings?.siteName || "مؤسسة للمقاولات العامة";
-  const logoUrl = settings?.logoUrl || "/logo.png";
-  const phone = settings?.phone || "+966537302795";
-  const address = settings?.address || "المملكة العربية السعودية";
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.shabouk-pro.com";
+  const siteName = BRAND_NAME;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "HomeAndConstructionBusiness",
     "name": siteName,
-    "image": logoUrl,
-    "url": siteUrl,
-    "telephone": phone,
+    ...(siteUrl ? { "url": siteUrl } : {}),
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": address,
       "addressCountry": "SA",
-      "addressLocality": "Saudi Arabia"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 24.7136,
-      "longitude": 46.6753
     },
     "priceRange": "$$",
-    "areaServed": [
-      { "@type": "Country", "name": "Saudi Arabia" },
-      { "@type": "City", "name": "Riyadh" }
-    ],
+    "areaServed": [{ "@type": "Country", "name": "Saudi Arabia" }],
     "hasOfferCatalog": {
       "@type": "OfferCatalog",
-      "name": "خدمات المقاولات العامة",
+      "name": "مجالات سياج ونخيل المملكة",
       "itemListElement": [
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "توريد وتركيب الشبوك الزراعية والأمنية" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "زراعة وتوريد النخيل وتنسيق الحدائق" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "إنشاء وبناء الهناجر والمستودعات" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "تركيب المظلات والسواتر" } },
-        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "توريد وتركيب الحجر الطبيعي والواجهات" } }
+        ...["النخيل", "الشبوك", "الأشجار", "الزيتون", "الهناجر والمظلات"].map((name) => ({
+          "@type": "Offer",
+          "itemOffered": { "@type": "Service", name },
+        })),
       ]
     }
   };
@@ -156,18 +109,22 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className={cairo.className}>
         {children}
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-28Q9MNRNKJ"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-28Q9MNRNKJ');
-          `}
-        </Script>
+        {gaId && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+              strategy="afterInteractive"
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaId}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   );

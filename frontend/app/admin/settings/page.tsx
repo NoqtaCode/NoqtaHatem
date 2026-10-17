@@ -1,24 +1,43 @@
-import { safeFetch, type SiteSettings } from "../../../lib/sanity";
+import { safeFetchFresh, type SiteSettings } from "../../../lib/sanity";
 import { updateGeneralSettings, updateAccountSettings } from "../../../actions/settings";
 import SettingsSubmitButton from "../../../components/admin/SettingsSubmitButton"; 
 import { Globe, Phone, ShieldCheck, ImageIcon, Key, ShieldAlert } from "lucide-react";
 import Image from "next/image";
+import { redirect } from "next/navigation";
+import CategoryImagePicker, { type CategoryImageOption } from "../../../components/admin/CategoryImagePicker";
+import { categories, sanityCategoryValues } from "../../../lib/brand";
 
 export const revalidate = 0;
 
-export default async function SettingsPage() {
-  const settings = (await safeFetch<SiteSettings>(`*[_type == "settings"][0]{
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
+  const status = await searchParams;
+  const [settings, availableImages] = await Promise.all([safeFetchFresh<SiteSettings>(`*[_type == "settings"][0]{
     ..., 
     "logoImageUrl": logo.asset->url,
     "heroImageUrl": heroImage.asset->url, 
-    "aboutImageUrl": aboutImage.asset->url
-  }`, {})) ?? {};
+    "aboutImageUrl": aboutImage.asset->url,
+    "categoryHomeImageUrls": categoryHomeImages{
+      "palms": palms.asset->url, "fences": fences.asset->url, "trees": trees.asset->url,
+      "olives": olives.asset->url, "structures": structures.asset->url
+    }
+  }`, {}), safeFetchFresh<CategoryImageOption[]>(`*[_type == "gallery" || (_type == "project" && status == "published")] | order(_createdAt desc) {
+    "assetId": coalesce(image.asset._ref, mainImage.asset._ref),
+    "url": coalesce(image.asset->url, mainImage.asset->url),
+    "title": coalesce(title, "صورة من المعرض"),
+    category
+  }[defined(assetId) && defined(url)]`, [])]);
+  const imageOptionsByCategory = Object.fromEntries(categories.map((category) => [
+    category.slug,
+    availableImages.filter((image: CategoryImageOption & { category?: string }) => sanityCategoryValues[category.slug]?.includes(image.category || "")),
+  ])) as Record<string, CategoryImageOption[]>;
 
   return (
     <div className="max-w-6xl mx-auto pb-20 px-4" dir="rtl">
       <div className="mb-12 pt-8 text-right font-sans">
         <h1 className="text-3xl md:text-4xl font-black text-slate-800">إعدادات المنصة</h1>
         <p className="text-slate-500 mt-2">تحديث هوية الموقع، بيانات التواصل، وحماية الحساب</p>
+        {status.saved === "1" && <p role="status" className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 font-bold text-emerald-800">تم حفظ الإعدادات والصور. حدّث الصفحة الرئيسية لمشاهدة التغييرات.</p>}
+        {status.error === "1" && <p role="alert" className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 font-bold text-red-700">تعذر حفظ الصورة. تحقق من اتصال Sanity وصلاحية الرفع ثم حاول مرة أخرى.</p>}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -27,7 +46,8 @@ export default async function SettingsPage() {
         <div className="lg:col-span-2 space-y-10">
           <form action={async (formData) => {
             'use server';
-            await updateGeneralSettings(formData);
+            const result = await updateGeneralSettings(formData);
+            redirect(result.success ? "/admin/settings?saved=1" : "/admin/settings?error=1");
           }} className="space-y-10">
             
             {/* نصوص الواجهة */}
@@ -70,6 +90,14 @@ export default async function SettingsPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-500 flex items-center gap-2"> <ImageIcon size={14}/> خلفية الواجهة الرئيسية كاملة </label>
+                  <div className="relative h-48 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+                    {settings.heroImageUrl ? (
+                      <Image src={settings.heroImageUrl} alt="خلفية الواجهة الحالية" fill unoptimized className="object-cover" />
+                    ) : (
+                      <span className="flex h-full items-center justify-center text-sm font-bold text-slate-400">تُستخدم الصورة الافتراضية حاليًا</span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500">ستظهر الصورة بعد الحفظ كخلفية الواجهة الرئيسية.</p>
                   <input type="file" name="heroImage" accept="image/jpeg,image/png,image/webp" className="w-full border-2 border-dashed border-slate-100 rounded-2xl p-3 bg-slate-50 text-xs" />
                 </div>
                 <div className="space-y-2">
@@ -87,6 +115,28 @@ export default async function SettingsPage() {
                   <input type="file" name="aboutImage" accept="image/jpeg,image/png,image/webp" className="w-full border-2 border-dashed border-slate-100 rounded-2xl p-3 bg-slate-50 text-xs" />
                 </div>
               </div>
+            </div>
+
+            <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-blue-900">صور عرض الأقسام في الرئيسية</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-500">اختر صورة العرض التي تظهر مع كل قسم في الصفحة الرئيسية. صفحات الأقسام تعرض عنوان المعرض وصوره مباشرة.</p>
+              </div>
+              <div className="space-y-7">
+                {categories.map((category) => {
+                  const choices = imageOptionsByCategory[category.slug] || [];
+                  return (
+                    <section key={category.slug} className="space-y-3 border-t border-slate-100 pt-6">
+                      <h3 className="text-lg font-black text-slate-800">{category.title}</h3>
+                      {choices.length === 0 && <p className="rounded-xl bg-amber-50 px-4 py-3 text-xs font-bold leading-5 text-amber-800">لا توجد صور لهذا القسم في المعرض بعد. ارفع صورًا للقسم أولًا من صفحة المعرض.</p>}
+                      <div className="max-w-xl">
+                        <CategoryImagePicker name={`categoryHomeImage_${category.slug}`} label="صورة العرض في الرئيسية" choices={choices} currentAssetId={settings.categoryHomeImages?.[category.slug]?.asset?._ref} currentImageUrl={settings.categoryHomeImageUrls?.[category.slug]} fallbackUrl={category.image} />
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+              <SettingsSubmitButton />
             </div>
 
             {/* معلومات التواصل */}

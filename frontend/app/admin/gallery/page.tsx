@@ -21,6 +21,11 @@ export default async function AdminGallery() {
   // دالة لترجمة الأكواد لأسماء عربية
   const getCategoryLabel = (cat: string) => {
     const labels: Record<string, string> = {
+      palms: 'النخيل',
+      fences: 'الشبوك',
+      trees: 'الأشجار',
+      olives: 'الزيتون',
+      structures: 'الهناجر والمظلات',
       shabouk: 'شبوك',
       nakheel: 'نخيل',
       hanajer: 'هناجر',

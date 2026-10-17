@@ -1,299 +1,195 @@
-import { safeFetch, type SiteSettings } from "../lib/sanity";
-import Link from "next/link";
 import Image from "next/image";
-import Navbar from "../components/layout/Navbar";
+import Link from "next/link";
+import { ArrowLeft, ArrowUpLeft, Check, Images, MessageCircle, MoveUpLeft, Phone, Sprout } from "lucide-react";
+import SiteNavbar from "../components/layout/SiteNavbar";
 import Footer from "../components/layout/Footer";
-import FloatingActions from "../components/ui/FloatingActions";
-import GalleryPreview from "../components/sections/GalleryPreview";
+import { BRAND_NAME, CONTACT, categories, sanityCategoryValues } from "../lib/brand";
+import { safeFetch, safeFetchFresh } from "../lib/sanity";
 
-import {
-  ArrowLeft,
-  ArrowDownRight,
-  PhoneCall,
-  BriefcaseBusiness,
-  Star,
-  Quote
-} from "lucide-react";
+export const dynamic = "force-dynamic";
 
-export const revalidate = 10;
-
-async function getData() {
-  try {
-    const settingsPromise = safeFetch<SiteSettings | null>(`*[_type == "settings"][0]{
-      siteName, whatsapp, phone, email, address, description,
-      heroTitle, heroSubTitle, heroDescription,
-      "logoUrl": logo.asset->url,
-      "heroUrl": heroImage.asset->url,
-      "aboutUrl": aboutImage.asset->url
-    }`, null);
-
-    const testimonialsPromise = safeFetch(`*[_type == "testimonial" && isActive == true]{_id, clientName, feedback}`, []);
-    
-    const shaboukPromise = safeFetch(`*[_type == "project" && category == "shabouk" && status == "published"] | order(_createdAt desc)[0...4]{_id, title, "imageUrl": mainImage.asset->url}`, []);
-    const nakheelPromise = safeFetch(`*[_type == "project" && category == "nakheel" && status == "published"] | order(_createdAt desc)[0...4]{_id, title, "imageUrl": mainImage.asset->url}`, []);
-    const hajarPromise = safeFetch(`*[_type == "project" && category == "hajar" && status == "published"] | order(_createdAt desc)[0...4]{_id, title, "imageUrl": mainImage.asset->url}`, []);
-    const hanajerPromise = safeFetch(`*[_type == "project" && category == "hanajer" && status == "published"] | order(_createdAt desc)[0...4]{_id, title, "imageUrl": mainImage.asset->url}`, []);
-    const sawaterPromise = safeFetch(`*[_type == "project" && category == "sawater" && status == "published"] | order(_createdAt desc)[0...4]{_id, title, "imageUrl": mainImage.asset->url}`, []);
-
-    const [settings, testimonials, shabouk, nakheel, hajar, hanajer, sawater] = await Promise.all([
-      settingsPromise, testimonialsPromise, shaboukPromise, nakheelPromise, hajarPromise, hanajerPromise, sawaterPromise
-    ]);
-
-    return { settings, testimonials, shabouk, nakheel, hajar, hanajer, sawater };
-  } catch (error) {
-    console.error("Fetch failed:", error);
-    return {
-      settings: null, testimonials: [], shabouk: [], nakheel: [], hajar: [], hanajer: [], sawater: [],
-    };
-  }
-}
+const categoryDetails: Record<string, { overview: string; points: string[] }> = {
+  palms: {
+    overview: "نساعدك على اختيار النخيل المناسب لمساحتك، وتنسيق الزراعة بما ينسجم مع طبيعة الموقع واستخدامه.",
+    points: ["اختيار أنواع النخيل", "تجهيز الموقع للزراعة", "تنسيق النخيل ضمن المساحة"],
+  },
+  fences: {
+    overview: "حلول لتحديد حدود المزرعة أو الأرض وتنظيمها، مع مراعاة طبيعة الموقع والغرض من التسوير.",
+    points: ["تحديد احتياج الموقع", "اختيار حل التسوير المناسب", "تنسيق تنفيذ الشبوك"],
+  },
+  trees: {
+    overview: "اختيار الأشجار وتوزيعها بطريقة تساعد على تكوين مساحات أكثر خضرة وظلالًا متوازنة.",
+    points: ["اختيار الأشجار الملائمة", "توزيعها ضمن الموقع", "تنسيق المساحات المزروعة"],
+  },
+  olives: {
+    overview: "زراعة أشجار الزيتون والعناية بتوزيعها بما يناسب أرضك ويضيف للمزرعة طابعًا طبيعيًا مميزًا.",
+    points: ["اختيار مواقع الزراعة", "تنسيق أشجار الزيتون", "إرشادات العناية بالمزروعات"],
+  },
+  structures: {
+    overview: "هناجر ومظلات تساعد على تجهيز المساحات للاستخدام، مع تنسيق الحل وفق احتياج المشروع وموقعه.",
+    points: ["هناجر للمساحات المختلفة", "مظلات بحسب الاستخدام", "تنسيق احتياجات المشروع"],
+  },
+};
 
 export default async function Home() {
-  const data = await getData();
-  const { settings, testimonials, shabouk, nakheel, hajar, hanajer, sawater } = data;
-  const waNumber = settings?.whatsapp || "966537302795";
-
-  const sections = [
-    {
-      id: "shabouk",
-      title: "أعمال الشبوك",
-      desc: "تسوير وحماية المزارع والأراضي بأعلى معايير الأمان باستخدام شبوك مجلفنة مقاومة للعوامل الجوية.",
-      projects: shabouk,
-      color: "from-blue-600 to-indigo-900",
-      accent: "text-blue-500",
-      bg: "bg-slate-50"
-    },
-    {
-      id: "nakheel",
-      title: "تنسيق النخيل",
-      desc: "نحول مساحتك إلى واحة خضراء. توريد وزراعة كافة أنواع النخيل بأيدي خبراء زراعيين.",
-      projects: nakheel,
-      color: "from-emerald-500 to-green-900",
-      accent: "text-emerald-500",
-      bg: "bg-white"
-    },
-    {
-      id: "hanajer",
-      title: "الهناجر والمستودعات",
-      desc: "حلول إنشائية معدنية متكاملة. تصميم وتشييد الهناجر والمصانع وفق أدق الحسابات الهندسية لضمان أقصى اتساع وأمان.",
-      projects: hanajer,
-      color: "from-slate-600 to-slate-900",
-      accent: "text-slate-600",
-      bg: "bg-slate-50"
-    },
-    {
-      id: "sawater",
-      title: "سواتر ومظلات",
-      desc: "حماية من الشمس بأناقة. تركيب مظلات السيارات والسواتر الجدارية بتصاميم عصرية ومواد عالية الجودة.",
-      projects: sawater,
-      color: "from-amber-500 to-orange-700",
-      accent: "text-amber-500",
-      bg: "bg-white"
-    },
-    {
-      id: "hajar",
-      title: "الحجر الطبيعي",
-      desc: "واجهات تعكس الفخامة والأصالة. تنفيذ أعمال الحجر الطبيعي للفلل والقصور بتصاميم هندسية دقيقة تدوم طويلاً.",
-      projects: hajar,
-      color: "from-stone-500 to-stone-800",
-      accent: "text-stone-500",
-      bg: "bg-stone-50"
-    }
-  ];
+  const [settings, firstPalmPhoto] = await Promise.all([
+    safeFetchFresh<{ heroImageUrl?: string; categoryHomeImageUrls?: Record<string, string> }>(
+      `*[_type == "settings"][0]{
+        "heroImageUrl": heroImage.asset->url,
+        "categoryHomeImageUrls": categoryHomeImages{
+          "palms": palms.asset->url,
+          "fences": fences.asset->url,
+          "trees": trees.asset->url,
+          "olives": olives.asset->url,
+          "structures": structures.asset->url
+        }
+      }`,
+      {},
+    ),
+    safeFetch<{ imageUrl?: string }>(
+      `*[(_type == "gallery" || (_type == "project" && status == "published")) && category in $values] | order(_createdAt asc)[0]{"imageUrl": coalesce(image.asset->url, mainImage.asset->url)}`,
+      {},
+      { values: sanityCategoryValues.palms },
+    ),
+  ]);
 
   return (
-    <div className="flex flex-col min-h-screen font-sans bg-white text-slate-900 selection:bg-amber-400 selection:text-black overflow-x-hidden w-full" dir="rtl">
-      <Navbar settings={settings} />
+    <div className="min-h-screen overflow-hidden bg-[#f7f5ef] text-[#172638]" dir="rtl">
+          <SiteNavbar overlay />
 
-      {/* --- 1. HERO SECTION --- */}
-      <section id="home" className="relative isolate min-h-[100svh] overflow-hidden bg-[#071827] px-4 pb-12 pt-28 sm:px-6 md:pb-16 md:pt-36 lg:px-8 lg:pt-40">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_18%_50%,rgba(16,185,129,0.2),transparent_42%),radial-gradient(ellipse_at_85%_10%,rgba(245,158,11,0.15),transparent_34%),linear-gradient(135deg,#071827_0%,#0b2530_55%,#071827_100%)]" />
-        <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:linear-gradient(rgba(255,255,255,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.12)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent_85%)]" />
-
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
-          <div className="order-1 w-full text-center lg:text-right">
-            <span className="mb-5 inline-flex items-center rounded-full border border-amber-300/25 bg-white/5 px-4 py-2 text-sm font-bold text-amber-200 backdrop-blur-sm md:mb-7">
-              جودة في التنفيذ وثقة في الإنجاز
-            </span>
-            <h1 className="mb-5 text-4xl font-black leading-[1.2] tracking-tight text-white sm:text-5xl md:mb-6 md:text-6xl lg:text-7xl xl:text-8xl">
-              {settings?.heroTitle || "مقاولات"}
-              <span className="mt-2 block bg-gradient-to-l from-amber-200 via-amber-400 to-amber-500 bg-clip-text text-transparent">
-                {settings?.heroSubTitle || "عصرية متكاملة"}
-              </span>
-            </h1>
-
-            <p className="mx-auto mb-7 max-w-2xl text-base font-medium leading-[1.9] text-slate-200 sm:text-lg md:mb-9 md:text-xl lg:mx-0 lg:text-2xl">
-              {settings?.heroDescription || "نضع بين يديك خبرة سنوات في إنجاز أعقد المشاريع من شبوك، هناجر، زراعة النخيل، وواجهات الحجر الطبيعي، بدقة متناهية وجودة تفوق التوقعات."}
-            </p>
-
-            <div className="mx-auto flex w-full max-w-md flex-col justify-center gap-3 sm:max-w-lg md:flex-row md:gap-4 lg:mx-0 lg:justify-start">
-              <Link href="#expertise" className="group flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-amber-400 px-5 py-3.5 text-base font-black text-slate-950 shadow-lg shadow-amber-950/20 transition hover:bg-amber-300 md:w-auto md:px-6 lg:px-8 lg:text-lg">
-                <span>استكشف أعمالنا</span>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-white transition group-hover:bg-white group-hover:text-slate-950">
-                  <ArrowDownRight size={18} />
-                </span>
-              </Link>
-              <Link href="/contact" className="flex min-h-14 w-full items-center justify-center gap-3 rounded-full border border-white/20 bg-white/10 px-5 py-3.5 text-base font-bold text-white shadow-lg backdrop-blur-md transition hover:border-white/40 hover:bg-white/15 md:w-auto md:px-6 lg:px-8 lg:text-lg">
-                <PhoneCall size={18} />
-                <span>اطلب استشارة مجانية</span>
-              </Link>
-            </div>
-          </div>
-
-          <div className="relative order-2 mx-auto w-full max-w-[340px] sm:max-w-[390px] lg:max-w-[460px]">
-            <div className="pointer-events-none absolute -inset-5 rounded-[2.5rem] bg-gradient-to-br from-emerald-400/20 via-transparent to-amber-400/20 blur-2xl" />
-            <div className="relative aspect-[4/5] max-h-[560px] overflow-hidden rounded-[2rem] border border-white/15 bg-white/5 p-2 shadow-[0_30px_90px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:rounded-[2.5rem] sm:p-3">
-              <Image
-                src={settings?.heroUrl || "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=2070"}
-                alt="صورة من أعمال المؤسسة"
-                fill
-                priority
-                unoptimized
-                sizes="(max-width: 640px) 88vw, (max-width: 1024px) 390px, 460px"
-                className="rounded-[1.5rem] object-contain sm:rounded-[2rem]"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* --- 2. ABOUT STATEMENT --- */}
-      <section className="py-20 lg:py-32 px-4 md:px-8 bg-white relative overflow-hidden">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-10 lg:gap-16 items-center text-center md:text-right">
-          <div className="w-full md:w-1/3 flex flex-col items-center md:items-start gap-6 lg:gap-8">
-             <div className="w-20 h-20 lg:w-24 lg:h-24 bg-amber-100 rounded-full flex items-center justify-center text-amber-600 mb-2">
-               <BriefcaseBusiness size={36} className="lg:w-10 lg:h-10" />
-             </div>
-             <h2 className="text-3xl lg:text-4xl font-black text-slate-900 leading-tight">شريكك الموثوق <br className="hidden md:block" />في كل بناء وتأسيس.</h2>
-             <Link href="/about" className="inline-flex items-center justify-center gap-2 text-amber-600 font-bold hover:text-amber-700 transition-colors">
-               اقرأ قصتنا <ArrowLeft size={18} />
-             </Link>
-          </div>
-          <div className="w-full md:w-2/3 md:border-r-4 border-slate-100 md:pr-8 lg:pr-16 pt-6 md:pt-0 border-t-4 md:border-t-0 border-slate-100/50">
-             <p className="text-xl lg:text-4xl font-light text-slate-500 leading-[1.7] lg:leading-[1.8]">
-               نحن لا نبني مجرد هياكل، بل نؤسس <span className="font-bold text-slate-900">حلولاً هندسية مستدامة</span>. من الشبوك الأمنية، للهناجر الضخمة، لتنسيق النخيل والحجر الفاخر، نجمع بين <span className="text-amber-500 font-bold border-b-2 border-amber-200">الدقة المطلقة</span> والجمال.
-             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* --- 3. THE ZIG-ZAG EXPERTISE SECTIONS --- */}
-      <section id="expertise" className="relative overflow-hidden w-full">
-        {sections.map((sec, idx) => {
-          const isEven = idx % 2 === 0;
-          
-          return (
-            <div key={sec.id} id={sec.id} className={`py-16 lg:py-36 px-4 md:px-8 ${sec.bg} border-b border-slate-200/50 w-full`}>
-              <div className={`max-w-7xl mx-auto flex flex-col gap-10 lg:gap-24 items-center ${isEven ? 'lg:flex-row' : 'lg:flex-row-reverse'}`}>
-                
-                {/* Text Content */}
-                <div className="w-full lg:w-5/12 flex flex-col items-center text-center lg:items-start lg:text-right relative">
-                   {/* Background Number */}
-                   <div className="text-[5rem] lg:text-[8rem] font-black text-slate-100 leading-none mb-[-2rem] lg:mb-[-3rem] select-none -z-10 absolute lg:relative top-0 lg:top-auto opacity-50 lg:opacity-100">
-                     0{idx + 1}
-                   </div>
-                   
-                   <h3 className="text-3xl lg:text-6xl font-black text-slate-900 mb-4 lg:mb-8 tracking-tight relative z-10 pt-4 lg:pt-0">
-                     {sec.title}
-                   </h3>
-                   <p className="text-base lg:text-2xl text-slate-500 font-light leading-[1.7] lg:leading-[1.8] mb-8 lg:mb-10 max-w-lg relative z-10">
-                     {sec.desc}
-                   </p>
-                   
-                   <div className="grid grid-cols-2 gap-3 lg:gap-4 w-full max-w-sm lg:max-w-full mb-8 lg:mb-10 relative z-10">
-                      <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white border border-slate-100 shadow-sm flex flex-col justify-center items-center lg:items-start">
-                         <span className={`block text-xl lg:text-2xl font-black mb-1 ${sec.accent}`}>متانة</span>
-                         <span className="text-xs lg:text-sm text-slate-500 font-bold">مواد معتمدة</span>
-                      </div>
-                      <div className="p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-white border border-slate-100 shadow-sm flex flex-col justify-center items-center lg:items-start">
-                         <span className={`block text-xl lg:text-2xl font-black mb-1 ${sec.accent}`}>ضمان</span>
-                         <span className="text-xs lg:text-sm text-slate-500 font-bold">تنفيذ دقيق</span>
-                      </div>
-                   </div>
-
-                   <Link href={`/projects/${sec.id}`} className="inline-flex items-center justify-center gap-3 px-6 lg:px-8 py-3 lg:py-4 bg-slate-900 text-white rounded-full font-bold hover:bg-amber-500 hover:text-black transition-all duration-300 w-full sm:w-auto relative z-10">
-                      تصفح الألبوم الكامل <ArrowLeft size={18} />
-                   </Link>
-                </div>
-
-                {/* Visual / Projects Grid */}
-                <div className="w-full lg:w-7/12 relative mt-8 lg:mt-0">
-                   {sec.projects.length > 0 ? (
-                     <div className="bg-white p-3 lg:p-8 rounded-[1.5rem] lg:rounded-[3rem] shadow-[0_15px_30px_rgba(0,0,0,0.04)] lg:shadow-[0_30px_60px_rgba(0,0,0,0.05)] border border-slate-100 relative z-10">
-                        <GalleryPreview projects={sec.projects.slice(0, 4)} />
-                     </div>
-                   ) : (
-                     <div className="aspect-video bg-slate-100 rounded-[1.5rem] lg:rounded-[3rem] flex items-center justify-center border-2 border-dashed border-slate-300 text-slate-400 font-bold text-lg lg:text-xl relative z-10">
-                        سيتم إضافة الصور قريباً
-                     </div>
-                   )}
-                   {/* Decorative gradient blob */}
-                   <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] rounded-full bg-gradient-to-tr ${sec.color} opacity-5 lg:opacity-5 blur-[60px] lg:blur-[100px] -z-0 pointer-events-none`}></div>
-                </div>
-
+      <main>
+        <section id="home" className="relative isolate flex min-h-[720px] items-center justify-center overflow-hidden bg-[#071827] px-5 pb-16 pt-32 text-center text-white sm:min-h-[800px] sm:px-8 sm:pt-36 lg:min-h-[900px] lg:px-10">
+          <Image src={settings?.heroImageUrl || categories[0].image} alt={categories[0].imageAlt} fill priority unoptimized sizes="100vw" className="-z-20 object-cover" />
+          <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[#071827]/95 via-[#071827]/65 to-[#071827]/20" />
+          <div className="absolute inset-x-0 top-0 -z-10 h-48 bg-gradient-to-b from-[#071827]/75 to-transparent" />
+          <div className="pointer-events-none absolute -right-36 top-40 -z-10 h-[32rem] w-[32rem] rounded-full border border-white/10" />
+          <div className="pointer-events-none absolute -right-16 top-60 -z-10 h-[22rem] w-[22rem] rounded-full border border-white/10" />
+          <div className="mx-auto w-full max-w-[1440px]">
+            <div className="mx-auto max-w-4xl">
+              <div className="mx-auto mb-6 inline-flex items-center gap-2.5 rounded-full border border-white/25 bg-white/10 px-4 py-2 text-xs font-black text-[#f6dfb1] backdrop-blur sm:text-sm">
+                <span className="h-2 w-2 rounded-full bg-[#f2c46d]" />
+                حلول زراعية وإنشائية في المملكة
+              </div>
+              <h1 className="mx-auto max-w-4xl text-4xl font-black leading-[1.25] tracking-tight sm:text-6xl lg:text-[5.5rem]">
+                أرضك تستحق،<br /><span className="text-[#f2c46d]">والتنفيذ علينا.</span>
+              </h1>
+              <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/80 sm:text-lg sm:leading-9">
+                نخيل وأشجار، شبوك، زيتون، وهناجر ومظلات — حلول مدروسة وتنفيذ يعتني بكل تفصيلة في مشروعك.
+              </p>
+              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                <Link href="/services" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[#f2c46d] px-7 text-sm font-black text-[#071827] transition hover:-translate-y-0.5 hover:bg-white">اكتشف خدماتنا <ArrowLeft size={18} /></Link>
+                <Link href="/contact" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full border border-white/45 bg-white/10 px-7 text-sm font-black text-white backdrop-blur transition hover:bg-white/20">تواصل معنا <ArrowUpLeft size={18} /></Link>
+              </div>
+              <div className="mt-10 flex flex-wrap justify-center gap-x-7 gap-y-3 border-t border-white/25 pt-6 text-xs font-bold text-white/85 sm:text-sm">
+                {["حلول مناسبة لموقعك", "اهتمام بالجودة", "تواصل مباشر"].map((item) => <span key={item} className="inline-flex items-center gap-2"><Check size={15} className="text-[#f2c46d]" />{item}</span>)}
               </div>
             </div>
-          );
-        })}
-      </section>
+          </div>
+          <a href="#categories" className="absolute bottom-6 left-6 hidden items-center gap-3 text-xs font-bold text-white/75 transition hover:text-white lg:inline-flex"><span className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40"><ArrowLeft size={17} /></span>تصفّح مجالاتنا</a>
+        </section>
 
-      {/* --- 4. TESTIMONIALS --- */}
-      {testimonials?.length > 0 && <section className="py-20 lg:py-32 px-4 md:px-8 bg-slate-950 text-white relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none"></div>
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex flex-col lg:flex-row justify-between items-center lg:items-end mb-12 lg:mb-20 gap-6 text-center lg:text-right">
+        <section className="px-5 pb-8 pt-12 sm:px-8 sm:pb-10 sm:pt-16 lg:px-10">
+          <div className="mx-auto grid max-w-[1440px] gap-7 rounded-[2rem] border border-[#e9e5dc] bg-white px-6 py-8 shadow-[0_14px_40px_rgba(7,24,39,0.04)] sm:px-10 sm:py-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-14 lg:px-14 lg:py-12">
             <div>
-               <h2 className="text-3xl sm:text-4xl lg:text-7xl font-black tracking-tight mb-4">آراء شركاء النجاح</h2>
-               <p className="text-base lg:text-xl text-slate-400 font-light max-w-xl mx-auto lg:mx-0">شهادات نعتز بها من عملاء وثقوا بنا في تنفيذ مشاريعهم الكبرى، فكانت النتيجة إنجازاً يفوق التوقعات.</p>
+              <span className="mb-4 inline-flex items-center gap-2 text-xs font-black tracking-[0.12em] text-[#a47d3c]"><Sprout size={16} /> نبذة عن أعمالنا</span>
+              <h2 className="text-3xl font-black leading-tight text-[#102238] sm:text-4xl">نخدم مشروعك من الفكرة حتى التنفيذ</h2>
+            </div>
+            <div>
+              <p className="text-sm leading-8 text-[#657286] sm:text-base sm:leading-9">في {BRAND_NAME} نجهّز المزارع والأراضي في الرياض ومناطق المملكة بحلول زراعية وإنشائية متكاملة. نساعدك في اختيار النخيل والأشجار والزيتون وتنسيق زراعتها، وننفذ الشبوك والهناجر والمظلات بما يلائم طبيعة الموقع واستخدامه. نبدأ بفهم احتياجك، ونرتب معك تفاصيل العمل بعناية لتكون خطوات المشروع واضحة من البداية.</p>
+              <Link href="/about" className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#9a7436] transition hover:text-[#102238]">تعرّف علينا أكثر <ArrowUpLeft size={17} /></Link>
             </div>
           </div>
+        </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {testimonials.map((t: any) => (
-              <div key={t._id} className="bg-white/5 backdrop-blur-md border border-white/10 p-6 lg:p-10 rounded-[2rem] lg:rounded-[2.5rem] hover:bg-white/10 transition-colors">
-                <Quote className="text-amber-500 mb-4 lg:mb-6" size={36} />
-                <p className="text-slate-300 text-base lg:text-xl font-light leading-relaxed mb-6 lg:mb-8 min-h-[80px] lg:min-h-[100px]">"{t.feedback}"</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center font-black text-lg lg:text-xl border border-white/20 shrink-0">
-                    {t.clientName.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-white text-base lg:text-lg">{t.clientName}</h4>
-                    <div className="flex gap-1 text-amber-500 mt-1">
-                      {[...Array(5)].map((_, i) => <Star key={i} size={12} fill="currentColor" />)}
+        <section className="px-5 py-20 sm:px-8 sm:py-28 lg:px-10 lg:py-32">
+          <div className="mx-auto max-w-[1440px]">
+            <div className="mb-12 flex flex-col justify-between gap-5 md:mb-16 md:flex-row md:items-end">
+              <div>
+                <span className="mb-4 inline-flex items-center gap-2 text-xs font-black tracking-[0.16em] text-[#a47d3c]"><Sprout size={16} /> مجالاتنا</span>
+                <h2 className="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">كل مشروع له احتياجه،<br className="hidden sm:block" />وكل احتياج له حل.</h2>
+              </div>
+              <p className="max-w-md text-sm leading-7 text-[#677386] sm:text-base sm:leading-8">اختر المجال الذي تبحث عنه، وتعرّف على خدماتنا وما نقدمه لمشروعك.</p>
+            </div>
+            <div id="categories" className="mx-auto flex max-w-6xl scroll-mt-28 flex-col gap-7 lg:gap-9">
+              {categories.map((category, index) => (
+                <article key={category.slug} className="overflow-hidden rounded-[1.8rem] border border-[#e9e5dc] bg-white shadow-[0_14px_40px_rgba(7,24,39,0.06)]">
+                  <div className="grid lg:grid-cols-2">
+                    <Link href={`/projects/${category.slug}`} aria-label={`اكتشف مجال ${category.title}`} className="group relative block aspect-[4/5] overflow-hidden rounded-[1.8rem] bg-[#26384a] lg:m-3 lg:aspect-auto lg:min-h-[620px]">
+                    <Image src={settings?.categoryHomeImageUrls?.[category.slug] || (category.slug === "palms" ? firstPalmPhoto?.imageUrl : undefined) || category.image} alt={category.imageAlt} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition duration-700 group-hover:scale-[1.03]" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#071827]/75 via-transparent to-transparent" />
+                      <span className="absolute right-5 top-5 rounded-full border border-white/25 bg-[#071827]/50 px-4 py-2 text-xs font-black text-[#f6dfb1] backdrop-blur">0{index + 1} <span className="mx-1 text-white/50">/</span> {category.eyebrow}</span>
+                      <span className="absolute bottom-5 left-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#f2c46d] text-[#071827] transition group-hover:-translate-x-1"><ArrowLeft size={19} /></span>
+                    </Link>
+                    <div className="flex flex-col justify-center p-6 sm:p-9 lg:p-12">
+                      <span className="mb-4 text-xs font-black tracking-[0.14em] text-[#a47d3c]">مجالاتنا <span className="mx-1 text-[#c9c2b5]">/</span> 0{index + 1}</span>
+                      <h3 className="text-3xl font-black leading-tight text-[#101b30] sm:text-4xl lg:text-5xl">{category.title}</h3>
+                      <p className="mt-5 text-base leading-8 text-[#647184]">{categoryDetails[category.slug].overview}</p>
+                      <div className="mt-7">
+                        <h4 className="mb-3 text-sm font-black text-[#172638]">تفاصيل الخدمة</h4>
+                        <ul className="grid grid-cols-2 gap-2 sm:gap-3">
+                          {categoryDetails[category.slug].points.map((point, pointIndex) => <li key={point} className={`flex min-h-[54px] items-center gap-2 rounded-xl border border-[#edf0f3] bg-[#fbfcfd] px-2.5 py-2 sm:min-h-[64px] sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-3 ${pointIndex === 2 ? "hidden sm:flex" : ""}`}><span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-[#0b2036]/[0.06] text-[10px] font-black text-[#a47d3c] sm:h-9 sm:w-9 sm:rounded-xl sm:text-sm">0{pointIndex + 1}</span><span className="text-[11px] font-bold leading-5 text-[#526176] sm:text-sm sm:leading-6">{point}</span></li>)}
+                        </ul>
+                      </div>
+                      <div className="mt-5 border-t border-[#e9e5dc] pt-4 sm:mt-8 sm:pt-6">
+                        <p className="mb-4 hidden text-sm leading-7 text-[#7b8490] sm:block">{category.description}</p>
+                        <div className="grid grid-cols-2 gap-2.5 sm:max-w-xl sm:gap-3">
+                          <Link href="/contact" className="inline-flex min-h-[54px] items-center justify-center gap-1.5 rounded-xl bg-[#0b2036] px-2.5 text-xs font-black text-white transition hover:bg-[#172e46] sm:min-h-14 sm:gap-2 sm:rounded-full sm:px-5 sm:text-sm">استفسر الآن <ArrowUpLeft size={15} /></Link>
+                          <Link href={`/projects/${category.slug}`} aria-label={`معرض صور ${category.title}`} className="inline-flex min-h-[54px] items-center justify-center gap-1.5 rounded-xl border border-[#dfe4e9] bg-white px-2.5 text-xs font-black text-[#172638] transition hover:border-[#a47d3c] hover:bg-[#fbfaf7] sm:min-h-14 sm:gap-2 sm:rounded-full sm:px-5 sm:text-sm"><Images size={15} className="shrink-0 text-[#a47d3c]" /> معرض الصور</Link>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                </article>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>}
+        </section>
 
-      {/* --- 5. MASSIVE CTA --- */}
-      <section id="contact" className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-emerald-950 to-slate-950 px-5 py-16 text-center text-white sm:py-20 md:px-8 md:py-24 lg:py-28">
-        <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-32 -right-20 h-80 w-80 rounded-full bg-amber-400/10 blur-3xl" />
-        <div className="relative mx-auto w-full max-w-4xl">
-           <h2 className="mb-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl md:mb-6 md:text-5xl lg:text-6xl">
-             لنبني معًا <span className="text-amber-400">المشروع القادم!</span>
-           </h2>
-           <p className="mx-auto mb-8 max-w-2xl text-base leading-relaxed text-slate-200 sm:text-lg md:mb-10 md:text-xl">
-             فريقنا مستعد لتلبية احتياجاتك. تواصل معنا للحصول على استشارة فنية وتسعيرة مجانية.
-           </p>
-           <div className="mx-auto flex w-full max-w-2xl flex-col items-stretch justify-center gap-3 sm:flex-row sm:gap-4">
-             <Link href={`https://wa.me/${waNumber}`} target="_blank" className="flex min-h-14 flex-1 items-center justify-center rounded-full bg-amber-400 px-6 py-3 text-base font-black text-slate-950 shadow-lg shadow-black/20 transition-all hover:-translate-y-1 hover:bg-amber-300 active:scale-95 sm:text-lg">
-                تواصل معنا عبر واتساب
-             </Link>
-             <Link href="/contact" className="flex min-h-14 flex-1 items-center justify-center rounded-full border border-white/40 bg-white/5 px-6 py-3 text-base font-bold text-white transition-all hover:-translate-y-1 hover:bg-white/10 active:scale-95 sm:text-lg">
-                تصفح معلومات الاتصال
-             </Link>
-           </div>
-        </div>
-      </section>
+        <section className="bg-[#0b2036] px-5 py-20 text-white sm:px-8 sm:py-28 lg:px-10 lg:py-32">
+          <div className="mx-auto grid max-w-[1440px] gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-20">
+            <div className="relative overflow-hidden rounded-[1.7rem] border border-white/10 bg-white/[0.035] p-5 sm:p-7">
+              <div className="pointer-events-none absolute -left-20 -top-20 h-56 w-56 rounded-full bg-[#f2c46d]/10 blur-3xl" />
+              <div className="relative mb-5">
+                <span className="text-xs font-black tracking-[0.14em] text-[#f2c46d]">تواصل مباشر</span>
+                <h3 className="mt-2 text-xl font-black sm:text-2xl">اختر طريقة التواصل المناسبة</h3>
+                <p className="mt-2 text-sm leading-7 text-white/55">نحن جاهزون للرد على استفسارك ومناقشة تفاصيل مشروعك.</p>
+              </div>
+              <div className="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <a href={`https://wa.me/${CONTACT.whatsapp}`} target="_blank" rel="noreferrer" className="group flex min-h-36 flex-col justify-between rounded-2xl border border-emerald-300/20 bg-emerald-400/[0.07] p-5 transition hover:-translate-y-1 hover:border-emerald-300/45 hover:bg-emerald-400/[0.12]">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-300"><MessageCircle size={22} /></span>
+                  <span className="mt-5 block">
+                    <span className="block text-sm font-black text-white">راسلنا على واتساب</span>
+                    <span dir="ltr" className="mt-1 block text-sm font-bold text-emerald-200">{CONTACT.phoneDisplay}</span>
+                    <span className="mt-4 flex items-center justify-between border-t border-emerald-200/10 pt-3 text-xs font-bold text-emerald-100/75">ابدأ المحادثة <ArrowUpLeft size={15} /></span>
+                  </span>
+                </a>
+                <a href={`tel:${CONTACT.phoneLink}`} className="group flex min-h-36 flex-col justify-between rounded-2xl border border-[#f2c46d]/20 bg-[#f2c46d]/[0.06] p-5 transition hover:-translate-y-1 hover:border-[#f2c46d]/45 hover:bg-[#f2c46d]/[0.1]">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#f2c46d]/15 text-[#f2c46d]"><Phone size={21} /></span>
+                  <span className="mt-5 block">
+                    <span className="block text-sm font-black text-white">اتصل بنا مباشرة</span>
+                    <span dir="ltr" className="mt-1 block text-sm font-bold text-[#f6dfb1]">{CONTACT.phoneDisplay}</span>
+                    <span className="mt-4 flex items-center justify-between border-t border-[#f2c46d]/10 pt-3 text-xs font-bold text-[#f6dfb1]/75">اتصال مباشر <ArrowUpLeft size={15} /></span>
+                  </span>
+                </a>
+              </div>
+            </div>
+            <div className="max-w-2xl">
+              <span className="mb-5 inline-block text-xs font-black tracking-[0.16em] text-[#f2c46d]">{BRAND_NAME}</span>
+              <h2 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl">نخطط بعناية،<br /><span className="text-[#f2c46d]">وننفّذ بثقة.</span></h2>
+              <p className="mt-6 text-base leading-8 text-white/70 sm:text-lg sm:leading-9">نفهم طبيعة الموقع واحتياجك، ثم نساعدك على اختيار الحل المناسب ونعتني بتفاصيل التنفيذ خطوة بخطوة.</p>
+              <div className="my-8 grid gap-4 border-y border-white/15 py-6 sm:grid-cols-2">{["حلول تناسب طبيعة الموقع", "اختيارات مدروسة للمشروع", "اهتمام بجودة التنفيذ", "تواصل واضح طوال العمل"].map((item) => <div key={item} className="flex items-center gap-3 text-sm font-bold text-white/85"><span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f2c46d]/15 text-[#f2c46d]"><Check size={15} /></span>{item}</div>)}</div>
+              <Link href="/about" className="inline-flex items-center gap-3 text-sm font-black text-[#f2c46d] transition hover:text-white">تعرّف علينا <MoveUpLeft size={17} /></Link>
+            </div>
+          </div>
+        </section>
 
-      <FloatingActions settings={settings} />
+        <section className="px-5 py-20 sm:px-8 sm:py-28 lg:px-10 lg:py-32">
+          <div className="mx-auto flex max-w-[1440px] flex-col items-start justify-between gap-8 rounded-[1.7rem] bg-[#e9e5dc] p-7 sm:p-12 lg:flex-row lg:items-center lg:p-16">
+            <div className="max-w-3xl"><span className="mb-4 block text-xs font-black tracking-[0.16em] text-[#a47d3c]">خطوتك الأولى تبدأ هنا</span><h2 className="text-3xl font-black leading-tight sm:text-5xl">لديك مشروع؟<br className="hidden sm:block" />خلّنا نبدأ الحديث.</h2><p className="mt-4 max-w-xl text-sm leading-7 text-[#677386] sm:text-base">أخبرنا عن احتياجك، وسنتواصل معك لمناقشة التفاصيل.</p></div>
+            <Link href="/contact" className="inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-full bg-[#0b2036] px-8 text-sm font-black text-white transition hover:-translate-y-0.5 hover:bg-[#172e46] sm:w-auto">تواصل معنا <ArrowUpLeft size={18} /></Link>
+          </div>
+        </section>
+      </main>
       <Footer />
     </div>
   );

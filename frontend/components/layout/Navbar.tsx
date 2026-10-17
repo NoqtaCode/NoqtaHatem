@@ -1,151 +1,56 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, ChevronDown, MessageCircle, Layers, Trees, Factory, Tent, Diamond } from "lucide-react";
+import { ArrowUpLeft, Menu } from "lucide-react";
+import { categories, BRAND_NAME } from "../../lib/brand";
 
-interface NavbarProps {
-  settings?: {
-    siteName?: string;
-    whatsapp?: string;
-    logoUrl?: string;
-  } | null;
-}
-
-export default function Navbar({ settings }: NavbarProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isProjectsOpen, setIsProjectsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  const siteName = settings?.siteName || "مؤسسة للمقاولات العامة";
-  const waNumber = settings?.whatsapp || "966537302795";
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const projectSubLinks = [
-    { name: 'أعمال الشبوك', href: '/#shabouk', icon: <Layers size={18} /> },
-    { name: 'تنسيق النخيل', href: '/#nakheel', icon: <Trees size={18} /> },
-    { name: 'الهناجر والمستودعات', href: '/#hanajer', icon: <Factory size={18} /> },
-    { name: 'سواتر ومظلات', href: '/#sawater', icon: <Tent size={18} /> },
-    { name: 'حجر طبيعي', href: '/#hajar', icon: <Diamond size={18} /> },
-  ];
+export default function Navbar({ overlay = false, logoUrl }: { overlay?: boolean; logoUrl?: string }) {
+  const brandLogo = logoUrl || "/site-logo.png";
 
   return (
-    <>
-      {/* Floating Pill Container */}
-      <div className="fixed top-0 w-full z-[100] flex justify-center pt-4 lg:pt-6 px-4 pointer-events-none">
-        <nav className={`pointer-events-auto transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex items-center justify-between px-4 lg:px-8 py-3 lg:py-3 rounded-full ${
-          scrolled 
-            ? 'w-full lg:max-w-5xl bg-white/90 backdrop-blur-xl shadow-[0_15px_30px_rgba(0,0,0,0.1)] border border-white/50' 
-            : 'w-full lg:max-w-7xl bg-black/30 backdrop-blur-md border border-white/10 shadow-2xl'
-        }`}>
-          
-          {/* Logo (Right) */}
-          <Link href="/#home" className="flex items-center gap-2 lg:gap-3 group">
-            <div className={`relative h-12 w-12 overflow-hidden rounded-xl transition-transform duration-500 group-hover:scale-105 lg:h-14 lg:w-14 ${scrolled ? 'bg-white/90 p-1 shadow-md' : 'bg-transparent p-0 shadow-none'}`}>
-              <Image src={settings?.logoUrl || "/logo.png"} alt="شعار المؤسسة" fill className="object-contain" priority unoptimized />
-            </div>
-            <div className="flex flex-col text-right">
-              <span className={`text-base lg:text-xl font-black leading-none transition-colors duration-300 ${scrolled ? 'text-slate-900' : 'text-white'}`}>
-                {siteName}
-              </span>
-            </div>
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-3 transition-all sm:px-6 sm:pt-4 lg:px-10" dir="rtl">
+      <nav className={`mx-auto flex max-w-[1440px] items-center justify-between px-4 py-3 text-white transition-all duration-300 sm:px-6 ${overlay ? "rounded-2xl border border-white/30 bg-[#071827]/60 shadow-xl shadow-black/15 backdrop-blur-lg" : "rounded-2xl border border-white/15 bg-[#071827]/90 shadow-2xl shadow-black/10 backdrop-blur-xl"}`}>
+        <Link href="/" className="group flex items-center gap-3" aria-label={BRAND_NAME}>
+          <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden bg-transparent sm:h-16 sm:w-16">
+            <Image src={brandLogo} alt="شعار سياج ونخيل المملكة" fill unoptimized sizes="64px" className="object-contain" />
+          </span>
+          <span className="leading-tight">
+            <span className="block text-lg font-black tracking-tight sm:text-xl">سياج ونخيل</span>
+            <span className="mt-1 block text-[11px] font-bold tracking-[0.24em] text-[#f2c46d]">المملكة</span>
+          </span>
+        </Link>
+
+        <div className="hidden items-center gap-8 text-sm font-semibold text-white/75 lg:flex">
+          <Link className="transition hover:text-[#f6dfb1]" href="/#home">الرئيسية</Link>
+          <Link className="transition hover:text-[#f6dfb1]" href="/#categories">مجالاتنا</Link>
+          <Link className="transition hover:text-[#f6dfb1]" href="/about">من نحن</Link>
+          <Link className="transition hover:text-[#f6dfb1]" href="/gallery">دليل أرضك</Link>
+          <Link className="transition hover:text-[#f6dfb1]" href="/services">خدماتنا</Link>
+        </div>
+
+        <div className="hidden lg:block">
+          <Link href="/contact" className="inline-flex items-center gap-2 rounded-full bg-[#f2c46d] px-5 py-3 text-sm font-black text-[#071827] transition hover:bg-white">
+            ابدأ مشروعك <ArrowUpLeft size={17} />
           </Link>
+        </div>
 
-          {/* Center Links (Desktop) */}
-          <div className="hidden lg:flex items-center gap-8 font-bold text-sm">
-            <Link href="/#home" className={`hover:-translate-y-1 transition-all ${scrolled ? 'text-slate-700 hover:text-amber-500' : 'text-white/90 hover:text-amber-400'}`}>الرئيسية</Link>
-            <Link href="/about" className={`hover:-translate-y-1 transition-all ${scrolled ? 'text-slate-700 hover:text-amber-500' : 'text-white/90 hover:text-amber-400'}`}>من نحن</Link>
-            
-            <div className="relative group cursor-pointer" onMouseEnter={() => setIsProjectsOpen(true)} onMouseLeave={() => setIsProjectsOpen(false)}>
-              <div className={`flex items-center gap-1 hover:-translate-y-1 transition-all py-2 ${scrolled ? 'text-slate-700 hover:text-amber-500' : 'text-white/90 hover:text-amber-400'}`}>
-                أعمالنا <ChevronDown size={14} className={`transition-transform duration-300 ${isProjectsOpen ? 'rotate-180' : ''}`} />
-              </div>
-              
-              <div className={`absolute top-full right-1/2 translate-x-1/2 mt-2 w-64 bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.15)] border border-white/50 p-3 transform transition-all duration-400 origin-top ${isProjectsOpen ? 'opacity-100 scale-100 visible translate-y-0' : 'opacity-0 scale-95 invisible -translate-y-4'}`}>
-                {projectSubLinks.map((sub) => (
-                  <Link key={sub.name} href={sub.href} className="flex items-center gap-3 p-3 rounded-2xl text-slate-700 hover:bg-slate-50 transition-all group/item">
-                    <div className="bg-slate-100 text-slate-500 p-2 rounded-xl group-hover/item:bg-amber-100 group-hover/item:text-amber-600 transition-all">{sub.icon}</div>
-                    <span className="text-sm font-bold">{sub.name}</span>
-                  </Link>
-                ))}
-                <div className="pt-2 mt-2 border-t border-slate-100">
-                  <Link href="/gallery" className="flex items-center justify-between p-3 rounded-2xl bg-amber-50 text-amber-900 font-black text-xs hover:bg-amber-400 hover:text-black transition-all">
-                    <span>المعرض الشامل (كل الأعمال)</span>
-                    <span>&larr;</span>
-                  </Link>
-                </div>
-              </div>
+        <details className="group relative lg:hidden">
+          <summary className="flex h-11 w-11 list-none cursor-pointer items-center justify-center rounded-xl border border-white/20 text-white [&::-webkit-details-marker]:hidden" aria-label="قائمة التنقل">
+            <Menu size={22} />
+          </summary>
+          <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] min-w-[min(88vw,22rem)] rounded-2xl border border-white/10 bg-[#0b2036] p-3 text-white shadow-2xl">
+            <Link href="/#home" className="block rounded-xl px-4 py-3 font-bold hover:bg-white/5">الرئيسية</Link>
+            <div className="grid grid-cols-2 gap-1 px-2 py-2">
+              {categories.map((category) => (
+                <Link key={category.slug} href={`/projects/${category.slug}`} className="rounded-lg px-3 py-2 text-sm text-white/75 hover:bg-white/5 hover:text-white">{category.title}</Link>
+              ))}
             </div>
-
-            <Link href="/gallery" className={`hover:-translate-y-1 transition-all ${scrolled ? 'text-slate-700 hover:text-amber-500' : 'text-white/90 hover:text-amber-400'}`}>المعرض الشامل</Link>
-            <Link href="/services" className={`hover:-translate-y-1 transition-all ${scrolled ? 'text-slate-700 hover:text-amber-500' : 'text-white/90 hover:text-amber-400'}`}>الخدمات</Link>
+            <Link href="/about" className="block rounded-xl px-4 py-3 font-bold hover:bg-white/5">من نحن</Link>
+            <Link href="/gallery" className="block rounded-xl px-4 py-3 font-bold hover:bg-white/5">دليل أرضك</Link>
+            <Link href="/services" className="block rounded-xl px-4 py-3 font-bold hover:bg-white/5">خدماتنا</Link>
+            <Link href="/contact" className="mt-2 block rounded-xl bg-[#f2c46d] px-4 py-3 text-center font-black text-[#071827]">تواصل معنا</Link>
           </div>
-
-          {/* Action / Mobile Toggle (Left) */}
-          <div className="flex items-center gap-3">
-            <Link href="/contact" className={`hidden lg:flex items-center gap-2 px-6 py-2.5 rounded-full font-bold transition-all duration-300 text-sm shadow-md hover:-translate-y-1 ${
-              scrolled ? 'bg-slate-900 text-white hover:bg-amber-500 hover:text-slate-900' : 'bg-amber-500 text-black hover:bg-white'
-            }`}>
-              اطلب تسعيرة
-            </Link>
-            
-            <button onClick={() => setIsOpen(true)} className={`lg:hidden p-2.5 rounded-full transition-transform active:scale-90 ${scrolled ? 'bg-slate-100 text-slate-900' : 'bg-white/10 text-white backdrop-blur-md border border-white/20'}`}>
-              <Menu size={22} />
-            </button>
-          </div>
-        </nav>
-      </div>
-
-      {/* Mobile Menu */}
-      <div className={`fixed inset-0 bg-black/60 backdrop-blur-md z-[200] transition-opacity duration-500 ${isOpen ? 'opacity-100 visible' : 'opacity-0 invisible'}`} onClick={() => setIsOpen(false)} />
-      
-      <div className={`fixed top-0 right-0 h-full w-[85%] max-w-[360px] bg-slate-900 text-white z-[210] shadow-2xl transform transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`} dir="rtl">
-        <div className="p-6 flex justify-between items-center border-b border-white/10">
-           <div className="flex items-center gap-3">
-              <div className="relative h-12 w-12 overflow-hidden rounded-xl bg-transparent"><Image src={settings?.logoUrl || "/logo.png"} alt="شعار المؤسسة" fill className="object-contain" unoptimized /></div>
-              <span className="font-black text-lg">{siteName}</span>
-           </div>
-           <button onClick={() => setIsOpen(false)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 text-white hover:bg-amber-500 hover:text-black transition-colors"><X size={20} /></button>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4 space-y-1">
-          <Link href="/#home" onClick={() => setIsOpen(false)} className="block p-4 font-black text-lg text-white hover:bg-white/10 rounded-2xl transition-all">الرئيسية</Link>
-          <Link href="/about" onClick={() => setIsOpen(false)} className="block p-4 font-black text-lg text-white hover:bg-white/10 rounded-2xl transition-all">من نحن</Link>
-          
-          <div className="py-2 bg-white/5 rounded-3xl border border-white/10">
-            <button onClick={() => setIsProjectsOpen(!isProjectsOpen)} className="flex items-center justify-between w-full p-4 font-black text-lg text-amber-400">
-              <span>أعمالنا</span>
-              <ChevronDown size={20} className={`transition-transform duration-300 ${isProjectsOpen ? 'rotate-180' : ''}`} />
-            </button>
-            <div className={`overflow-hidden transition-all duration-300 ${isProjectsOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div className="p-2 space-y-1">
-                {projectSubLinks.map((sub) => (
-                  <Link key={sub.name} href={sub.href} onClick={() => {setIsOpen(false); setIsProjectsOpen(false);}} className="flex items-center gap-3 p-3 text-sm font-bold text-slate-300 hover:text-white hover:bg-white/10 rounded-xl transition-all">
-                    <div className="bg-white/10 p-2 rounded-lg text-amber-400">{sub.icon}</div>
-                    <span>{sub.name}</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <Link href="/services" onClick={() => setIsOpen(false)} className="block p-4 font-black text-lg text-white hover:bg-white/10 rounded-2xl transition-all">الخدمات</Link>
-          <Link href="/gallery" onClick={() => setIsOpen(false)} className="block p-4 font-black text-lg text-white hover:bg-white/10 rounded-2xl transition-all">المعرض الشامل</Link>
-          <Link href="/contact" onClick={() => setIsOpen(false)} className="block p-4 font-black text-lg text-white hover:bg-white/10 rounded-2xl transition-all">تواصل معنا</Link>
-        </div>
-
-        <div className="p-6 border-t border-white/10">
-           <Link href={`https://wa.me/${waNumber}`} target="_blank" className="flex items-center justify-center gap-3 bg-amber-500 text-black py-4 rounded-full font-black text-lg active:scale-95 transition-all">
-              <span>محادثة واتساب</span><MessageCircle size={22} />
-           </Link>
-        </div>
-      </div>
-    </>
+        </details>
+      </nav>
+    </header>
   );
 }

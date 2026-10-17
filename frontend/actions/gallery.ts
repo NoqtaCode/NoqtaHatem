@@ -30,6 +30,7 @@ export async function uploadImages(formData: FormData) {
       });
     }
     revalidatePath('/admin/gallery');
+    revalidatePath(`/projects/${category}`);
   } catch (error) {
     console.error("Gallery Upload Error:", error);
   }

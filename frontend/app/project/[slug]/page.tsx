@@ -1,127 +1,76 @@
-import { safeFetch } from "./../../../lib/sanity";
+import { safeFetch } from "../../../lib/sanity";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-
-// دالة جلب البيانات
-async function getProject(slug: string) {
-  const query = `
-    *[_type == "project" && slug.current == $slug][0] {
-      title,
-      description,
-      "imageUrl": mainImage.asset->url,
-      _createdAt
-    }
-  `;
-  const project = await safeFetch<any>(query, null, { slug });
-  return project;
-}
-
+import { ArrowLeft, ArrowUpLeft, Sprout } from "lucide-react";
+import SiteNavbar from "../../../components/layout/SiteNavbar";
+import Footer from "../../../components/layout/Footer";
 import type { Metadata } from "next";
 
-export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
-  const params = await props.params;
-  const decodedSlug = decodeURIComponent(params.slug); 
-  const project = await getProject(decodedSlug);
-  if (!project) return { title: "المشروع غير موجود" };
+async function getProject(slug: string) {
+  return safeFetch<any>(`
+    *[_type == "project" && slug.current == $slug && category in ["palms", "fences", "trees", "olives", "structures"]][0] {
+      title, description, category, "imageUrl": mainImage.asset->url, _createdAt
+    }
+  `, null, { slug });
+}
 
+export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await props.params;
+  const project = await getProject(decodeURIComponent(slug));
+  if (!project) return { title: "المشروع غير موجود" };
   return {
-    title: `${project.title} | تفاصيل المشروع والتنفيذ`,
-    description: project.description || `استعرض تفاصيل وصور تنفيذ مشروع ${project.title} المنفذ بأعلى معايير الجودة والمواصفات المعتمدة.`,
+    title: project.title,
+    description: project.description || `تعرّف على تفاصيل مشروع ${project.title}.`,
     openGraph: {
-      title: `${project.title} | تفاصيل المشروع والتنفيذ`,
-      description: project.description || `تفاصيل وصور تنفيذ مشروع ${project.title}`,
-      images: project.imageUrl ? [{ url: project.imageUrl, alt: project.title }] : [],
+      title: project.title,
+      description: project.description || `تفاصيل مشروع ${project.title}`,
+      ...(project.imageUrl ? { images: [{ url: project.imageUrl, alt: project.title }] } : {}),
     },
   };
 }
 
 export default async function ProjectDetails(props: { params: Promise<{ slug: string }> }) {
-  
-  const params = await props.params;
-  const decodedSlug = decodeURIComponent(params.slug); 
-  const project = await getProject(decodedSlug);
-
-  if (!project) {
-    notFound();
-  }
+  const { slug } = await props.params;
+  const project = await getProject(decodeURIComponent(slug));
+  if (!project) notFound();
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 font-sans">
-      
-      {/* 1. الشريط العلوي (زر العودة) */}
-      <div className="max-w-4xl mx-auto px-4 pt-8 mb-6">
-        <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-blue-600 transition font-bold">
-           <span>&rarr;</span>
-           العودة للقائمة الرئيسية
-        </Link>
-      </div>
+    <div className="min-h-screen bg-[#f7f5ef] text-[#172638]" dir="rtl">
+      <SiteNavbar />
+      <main className="mx-auto max-w-[1200px] px-5 pb-24 pt-32 sm:px-10 sm:pt-40">
+        <Link href="/gallery" className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-[#677386] hover:text-[#26384a]"><ArrowLeft size={17} /> العودة إلى دليل المجالات</Link>
+        <article className="overflow-hidden rounded-[2rem] border border-[#e9e5dc] bg-white">
+          {project.imageUrl ? (
+            <div className="relative min-h-[400px] bg-[#e9e5dc] sm:min-h-[620px]">
+              <Image src={project.imageUrl} alt={project.title} fill unoptimized priority sizes="100vw" className="object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#071827]/80 via-transparent to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-10">
+                <span className="mb-3 inline-flex items-center gap-2 text-xs font-bold text-[#f2c46d]"><Sprout size={15} /> من أعمال سياج ونخيل المملكة</span>
+                <h1 className="max-w-3xl text-3xl font-black sm:text-5xl">{project.title}</h1>
+                {project._createdAt && <p className="mt-3 text-xs font-bold text-white/65">أضيف في {new Date(project._createdAt).toLocaleDateString("ar-SA")}</p>}
+              </div>
+            </div>
+          ) : (
+            <div className="px-6 pt-10 sm:px-10 sm:pt-14"><h1 className="text-3xl font-black sm:text-5xl">{project.title}</h1></div>
+          )}
 
-      {/* 2. كرت المشروع (Container) */}
-      <main className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-100">
-        
-        {/* الصورة الرئيسية للمشروع */}
-        {project.imageUrl && (
-          <div className="relative w-full h-[400px] md:h-[500px]">
-            <Image 
-              src={project.imageUrl} 
-              alt={project.title} 
-              fill 
-              className="object-cover"
-              priority 
-              unoptimized
-            />
-            {/* تدرج لوني خفيف فوق الصورة ليبرز العنوان */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent"></div>
-            
-            {/* العنوان يظهر فوق الصورة في الأسفل */}
-            <div className="absolute bottom-0 right-0 p-8 w-full">
-              <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-md">
-                {project.title}
-              </h1>
-              <p className="text-gray-300 text-sm">
-                تاريخ التنفيذ: {new Date(project._createdAt).toLocaleDateString('ar-SA')}
-              </p>
+          <div className="p-6 sm:p-10 lg:p-14">
+            <div className="max-w-3xl">
+              <span className="text-xs font-black tracking-[0.16em] text-[#738093]">تفاصيل المشروع</span>
+              <p className="mt-4 whitespace-pre-line text-base leading-8 text-[#677386] sm:text-lg sm:leading-9">{project.description || "تفاصيل إضافية لهذا المشروع ستضاف قريبًا."}</p>
+            </div>
+            <div className="mt-10 flex flex-col justify-between gap-5 rounded-[1.5rem] bg-[#e9e5dc] p-6 sm:flex-row sm:items-center sm:p-8">
+              <div>
+                <h2 className="text-xl font-black">هل لديك مشروع مشابه؟</h2>
+                <p className="mt-2 text-sm text-[#677386]">اختر مجالًا أو تواصل معنا لمناقشة احتياجك.</p>
+              </div>
+              <Link href="/contact" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#0b2036] px-6 text-sm font-black text-white transition hover:bg-[#172e46]">ابدأ مشروعك <ArrowUpLeft size={17} /></Link>
             </div>
           </div>
-        )}
-
-        {/* محتوى النص */}
-        <div className="p-8 md:p-12">
-          
-          {/* الوصف */}
-          <div className="prose max-w-none">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4 border-r-4 border-blue-500 pr-4">
-              تفاصيل العمل
-            </h3>
-            <p className="text-gray-600 leading-loose text-lg whitespace-pre-line">
-              {project.description}
-            </p>
-          </div>
-
-          {/* خط فاصل */}
-          <hr className="my-10 border-gray-200" />
-
-          {/* قسم اتخاذ الإجراء (CTA) */}
-          <div className="bg-blue-50 p-6 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
-            <div>
-              <h3 className="font-bold text-xl text-blue-900 mb-1">هل أعجبك هذا التشطيب؟</h3>
-              <p className="text-gray-600 text-sm">نحن مستعدون لتنفيذ مشروعك بنفس الجودة.</p>
-            </div>
-            
-            <Link 
-              href="https://wa.me/966537302795"
-              target="_blank"
-              className="flex items-center gap-3 bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold transition shadow-lg transform hover:scale-105"
-            >
-              {/* أيقونة واتساب بسيطة */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.017-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
-              تواصل معنا واتساب
-            </Link>
-          </div>
-
-        </div>
+        </article>
       </main>
+      <Footer />
     </div>
   );
 }

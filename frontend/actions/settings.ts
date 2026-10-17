@@ -30,6 +30,17 @@ export async function updateGeneralSettings(formData: FormData) {
     await client.createIfNotExists({ _id: settingsId, _type: 'settings' });
     let patch = client.patch(settingsId).set(patchData);
 
+    const categorySlugs = ['palms', 'fences', 'trees', 'olives', 'structures'];
+    for (const slug of categorySlugs) {
+      const selectedAsset = formData.get(`categoryHomeImage_${slug}`);
+      const path = `categoryHomeImages.${slug}`;
+      if (selectedAsset === '__auto__') {
+        patch = patch.unset([path]);
+      } else if (typeof selectedAsset === 'string' && selectedAsset.trim()) {
+        patch = patch.set({ [path]: { _type: 'image', asset: { _type: 'reference', _ref: selectedAsset } } });
+      }
+    }
+
     if (logoFile && logoFile.size > 0) {
       const asset = await client.assets.upload('image', logoFile);
       patch = patch.set({ logo: { _type: 'image', asset: { _type: "reference", _ref: asset._id } } });
@@ -49,9 +60,13 @@ export async function updateGeneralSettings(formData: FormData) {
     revalidatePath('/');
     revalidatePath('/', 'layout');
     revalidatePath('/about');
+    for (const slug of ['palms', 'fences', 'trees', 'olives', 'structures']) {
+      revalidatePath(`/projects/${slug}`);
+    }
     revalidatePath('/admin/settings');
     return { success: true, message: "تم تحديث البيانات بنجاح" };
   } catch (error) {
+    console.error("Failed to save general site settings:", error);
     return { success: false, message: "حدث خطأ في السيرفر" };
   }
 }
