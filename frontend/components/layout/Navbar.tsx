@@ -37,7 +37,7 @@ export default function Navbar({ overlay = false, logoUrl }: { overlay?: boolean
           <summary className="flex h-11 w-11 list-none cursor-pointer items-center justify-center rounded-xl border border-white/20 text-white [&::-webkit-details-marker]:hidden" aria-label="قائمة التنقل">
             <Menu size={22} />
           </summary>
-          <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] min-w-[min(88vw,22rem)] rounded-2xl border border-white/10 bg-[#0b2036] p-3 text-white shadow-2xl">
+          <div className="fixed left-3 right-3 top-[6.5rem] z-[60] max-h-[calc(100dvh-7.5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-white/10 bg-[#0b2036] p-3 text-white shadow-2xl sm:left-auto sm:right-6 sm:top-28 sm:w-[min(88vw,22rem)]">
             <Link href="/#home" className="block rounded-xl px-4 py-3 font-bold hover:bg-white/5">الرئيسية</Link>
             <div className="grid grid-cols-2 gap-1 px-2 py-2">
               {categories.map((category) => (

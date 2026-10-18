@@ -54,7 +54,7 @@ export default function Footer() {
           <span className="sm:flex-1">© {new Date().getFullYear()} {BRAND_NAME}. جميع الحقوق محفوظة.</span>
           <span className="sm:flex-1 sm:text-center">من الأرض… نصنع أثرًا يدوم.</span>
           <a
-            href="https://wa.me/966737543563"
+            href="https://wa.me/967737543563"
             target="_blank"
             rel="noreferrer"
             aria-label="تواصل مع نقطة كود عبر واتساب"
