@@ -15,3 +15,4 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: path === "" ? 1 : path.startsWith("/projects/") ? 0.8 : 0.7,
   }));
 }
+///
