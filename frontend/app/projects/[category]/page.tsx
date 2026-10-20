@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, ArrowUpLeft, Images } from "lucide-react";
-import { safeFetch } from "../../../lib/sanity";
+import { safeFetchFresh } from "../../../lib/sanity";
 import { categories, getCategory, sanityCategoryValues } from "../../../lib/brand";
 import SiteNavbar from "../../../components/layout/SiteNavbar";
 import Footer from "../../../components/layout/Footer";
@@ -30,8 +30,8 @@ export default async function FullGalleryPage(props: { params: Promise<{ categor
   if (!category) notFound();
 
   const values = sanityCategoryValues[category.slug] ?? [];
-  const images = await safeFetch<{ _id: string; title: string; imageUrl: string }[]>(`
-    *[(_type == "gallery" || (_type == "project" && status == "published")) && category in $values] | order(_createdAt asc) {
+  const images = await safeFetchFresh<{ _id: string; title: string; imageUrl: string }[]>(`
+    *[(_type == "gallery" || (_type == "project" && status == "published")) && category in $values] | order(_createdAt desc) {
       _id, "title": coalesce(title, ""), "imageUrl": coalesce(image.asset->url, mainImage.asset->url)
     }
   `, [], { values });

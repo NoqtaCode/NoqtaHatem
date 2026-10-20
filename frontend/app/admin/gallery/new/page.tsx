@@ -3,7 +3,8 @@ import { ArrowRight, ImagePlus } from "lucide-react";
 import { uploadImages } from "../../../../actions/gallery";
 import UploadSubmitButton from "../../../../components/admin/UploadSubmitButton";
 
-export default function NewGalleryUpload() {
+export default async function NewGalleryUpload({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
   return (
     <div className="max-w-2xl mx-auto px-4 pb-20">
       <div className="flex items-center gap-4 mb-8 pt-4">
@@ -12,6 +13,8 @@ export default function NewGalleryUpload() {
         </Link>
         <h1 className="text-2xl font-bold text-slate-800">رفع صور للمعرض</h1>
       </div>
+
+      {error && <p role="alert" className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-bold leading-6 text-red-700">{error === 'category' ? 'اختر قسمًا صحيحًا قبل رفع الصور.' : error === 'files' ? 'اختر حتى 10 صور بصيغة صورة صحيحة.' : 'تعذر رفع الصور إلى قاعدة البيانات. تحقق من اتصال Sanity وصلاحية الرفع ثم حاول مرة أخرى.'}</p>}
 
       <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10 border border-gray-100">
         <form action={uploadImages} className="space-y-8">
@@ -25,7 +28,7 @@ export default function NewGalleryUpload() {
               <option value="fences">الشبوك</option>
               <option value="trees">الأشجار</option>
               <option value="olives">الزيتون</option>
-              <option value="structures">الهناجر والمظلات</option>
+              <option value="structures">هناجر وسواتر</option>
             </select>
           </div>
 

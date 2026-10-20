@@ -145,7 +145,7 @@ export default function ProjectUploadForm() {
           <option value="fences">الشبوك</option>
           <option value="trees">الأشجار</option>
           <option value="olives">الزيتون</option>
-          <option value="structures">الهناجر والمظلات</option>
+          <option value="structures">هناجر وسواتر</option>
         </select>
       </div>
 

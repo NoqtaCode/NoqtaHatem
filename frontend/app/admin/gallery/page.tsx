@@ -1,15 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, ImageIcon } from "lucide-react";
-import { safeFetch } from "../../../lib/sanity";
+import { safeFetchFresh } from "../../../lib/sanity";
 import { deleteGalleryImage } from "../../../actions/gallery";
 import DeleteButton from "../../../components/admin/DeleteButton";
 
 export const revalidate = 0;
 
-export default async function AdminGallery() {
+export default async function AdminGallery({ searchParams }: { searchParams: Promise<{ uploaded?: string }> }) {
+  const { uploaded } = await searchParams;
   // جلب الصور مع منع التخزين المؤقت لضمان ظهور الصور فور رفعها
-  const images = await safeFetch(
+  const images = await safeFetchFresh(
     `*[_type == "gallery"] | order(_createdAt desc) {
       _id,
       category,
@@ -25,7 +26,7 @@ export default async function AdminGallery() {
       fences: 'الشبوك',
       trees: 'الأشجار',
       olives: 'الزيتون',
-      structures: 'الهناجر والمظلات',
+      structures: 'هناجر وسواتر',
       shabouk: 'شبوك',
       nakheel: 'نخيل',
       hanajer: 'هناجر',
@@ -51,6 +52,8 @@ export default async function AdminGallery() {
           <span>رفع صور جديدة</span>
         </Link>
       </div>
+
+      {uploaded && <p role="status" className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-bold text-emerald-800">تم حفظ {uploaded} صورة في قاعدة البيانات، وستظهر في القسم المختار.</p>}
 
       {/* 2. شبكة الصور */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">

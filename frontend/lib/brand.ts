@@ -1,7 +1,7 @@
 export const BRAND_NAME = "سياج ونخيل المملكة";
 
 export const BRAND_DESCRIPTION =
-  "حلول متكاملة للنخيل، الشبوك، الأشجار، الزيتون، والهناجر والمظلات في المملكة العربية السعودية.";
+  "حلول متكاملة للنخيل، الشبوك، الأشجار، الزيتون، والهناجر والسواتر في المملكة العربية السعودية.";
 
 export const CONTACT = {
   phoneDisplay: "0556543394",
@@ -45,9 +45,9 @@ export const categories = [
   },
   {
     slug: "structures",
-    title: "الهناجر والمظلات",
+    title: "هناجر وسواتر",
     eyebrow: "مساحة تخدمك",
-    description: "هناجر ومظلات مصممة للاستخدام اليومي، بمواد وتنفيذ يواكبان احتياجك.",
+    description: "هناجر وسواتر مصممة للاستخدام اليومي، بتنفيذ يواكب احتياج موقعك.",
     image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=85&w=1400&auto=format&fit=crop",
     imageAlt: "أعمال إنشاء وتجهيز",
   },

@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowUpLeft, Check, Images, MessageCircle, MoveUpLeft, Phone
 import SiteNavbar from "../components/layout/SiteNavbar";
 import Footer from "../components/layout/Footer";
 import { BRAND_NAME, CONTACT, categories, sanityCategoryValues } from "../lib/brand";
-import { safeFetch, safeFetchFresh } from "../lib/sanity";
+import { safeFetchFresh } from "../lib/sanity";
 
 export const dynamic = "force-dynamic";
 
@@ -26,13 +26,13 @@ const categoryDetails: Record<string, { overview: string; points: string[] }> = 
     points: ["اختيار مواقع الزراعة", "تنسيق أشجار الزيتون", "إرشادات العناية بالمزروعات"],
   },
   structures: {
-    overview: "هناجر ومظلات تساعد على تجهيز المساحات للاستخدام، مع تنسيق الحل وفق احتياج المشروع وموقعه.",
-    points: ["هناجر للمساحات المختلفة", "مظلات بحسب الاستخدام", "تنسيق احتياجات المشروع"],
+    overview: "هناجر وسواتر تساعد على تجهيز المساحات وتنظيمها، مع تنسيق الحل وفق احتياج المشروع وموقعه.",
+    points: ["هناجر للمساحات المختلفة", "سواتر بحسب الاستخدام", "تنسيق احتياجات المشروع"],
   },
 };
 
 export default async function Home() {
-  const [settings, firstPalmPhoto] = await Promise.all([
+  const [settings, categoryPhotos] = await Promise.all([
     safeFetchFresh<{ heroImageUrl?: string; categoryHomeImageUrls?: Record<string, string> }>(
       `*[_type == "settings"][0]{
         "heroImageUrl": heroImage.asset->url,
@@ -46,12 +46,16 @@ export default async function Home() {
       }`,
       {},
     ),
-    safeFetch<{ imageUrl?: string }>(
-      `*[(_type == "gallery" || (_type == "project" && status == "published")) && category in $values] | order(_createdAt asc)[0]{"imageUrl": coalesce(image.asset->url, mainImage.asset->url)}`,
-      {},
-      { values: sanityCategoryValues.palms },
-    ),
+    Promise.all(categories.map(async (category) => {
+      const photo = await safeFetchFresh<{ imageUrl?: string }>(
+        `*[(_type == "gallery" || (_type == "project" && status == "published")) && category in $values] | order(_createdAt desc)[0]{"imageUrl": coalesce(image.asset->url, mainImage.asset->url)}`,
+        {},
+        { values: sanityCategoryValues[category.slug] ?? [] },
+      );
+      return [category.slug, photo?.imageUrl] as const;
+    })),
   ]);
+  const categoryPhotoUrls = Object.fromEntries(categoryPhotos);
 
   return (
     <div className="min-h-screen overflow-hidden bg-[#f7f5ef] text-[#172638]" dir="rtl">
@@ -59,7 +63,7 @@ export default async function Home() {
 
       <main>
         <section id="home" className="relative isolate flex min-h-[720px] items-center justify-center overflow-hidden bg-[#071827] px-5 pb-16 pt-32 text-center text-white sm:min-h-[800px] sm:px-8 sm:pt-36 lg:min-h-[900px] lg:px-10">
-          <Image src={settings?.heroImageUrl || categories[0].image} alt={categories[0].imageAlt} fill priority unoptimized sizes="100vw" className="-z-20 object-cover" />
+          <Image src={settings?.heroImageUrl || settings?.categoryHomeImageUrls?.palms || categoryPhotoUrls.palms || categories[0].image} alt={categories[0].imageAlt} fill priority unoptimized sizes="100vw" className="-z-20 object-cover" />
           <div className="absolute inset-0 -z-10 bg-gradient-to-l from-[#071827]/95 via-[#071827]/65 to-[#071827]/20" />
           <div className="absolute inset-x-0 top-0 -z-10 h-48 bg-gradient-to-b from-[#071827]/75 to-transparent" />
           <div className="pointer-events-none absolute -right-36 top-40 -z-10 h-[32rem] w-[32rem] rounded-full border border-white/10" />
@@ -74,7 +78,7 @@ export default async function Home() {
                 أرضك تستحق،<br /><span className="text-[#f2c46d]">والتنفيذ علينا.</span>
               </h1>
               <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-white/80 sm:text-lg sm:leading-9">
-                نخيل وأشجار، شبوك، زيتون، وهناجر ومظلات — حلول مدروسة وتنفيذ يعتني بكل تفصيلة في مشروعك.
+                نخيل وأشجار، شبوك، زيتون، وهناجر وسواتر — حلول مدروسة وتنفيذ يعتني بكل تفصيلة في مشروعك.
               </p>
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <Link href="/services" className="inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-[#f2c46d] px-7 text-sm font-black text-[#071827] transition hover:-translate-y-0.5 hover:bg-white">اكتشف خدماتنا <ArrowLeft size={18} /></Link>
@@ -95,7 +99,7 @@ export default async function Home() {
               <h2 className="text-3xl font-black leading-tight text-[#102238] sm:text-4xl">نخدم مشروعك من الفكرة حتى التنفيذ</h2>
             </div>
             <div>
-              <p className="text-sm leading-8 text-[#657286] sm:text-base sm:leading-9">في {BRAND_NAME} نجهّز المزارع والأراضي في الرياض ومناطق المملكة بحلول زراعية وإنشائية متكاملة. نساعدك في اختيار النخيل والأشجار والزيتون وتنسيق زراعتها، وننفذ الشبوك والهناجر والمظلات بما يلائم طبيعة الموقع واستخدامه. نبدأ بفهم احتياجك، ونرتب معك تفاصيل العمل بعناية لتكون خطوات المشروع واضحة من البداية.</p>
+              <p className="text-sm leading-8 text-[#657286] sm:text-base sm:leading-9">في {BRAND_NAME} نجهّز المزارع والأراضي في الرياض ومناطق المملكة بحلول زراعية وإنشائية متكاملة. نساعدك في اختيار النخيل والأشجار والزيتون وتنسيق زراعتها، وننفذ الشبوك والهناجر والسواتر بما يلائم طبيعة الموقع واستخدامه. نبدأ بفهم احتياجك، ونرتب معك تفاصيل العمل بعناية لتكون خطوات المشروع واضحة من البداية.</p>
               <Link href="/about" className="mt-5 inline-flex items-center gap-2 text-sm font-black text-[#9a7436] transition hover:text-[#102238]">تعرّف علينا أكثر <ArrowUpLeft size={17} /></Link>
             </div>
           </div>
@@ -115,7 +119,7 @@ export default async function Home() {
                 <article key={category.slug} className="overflow-hidden rounded-[1.8rem] border border-[#e9e5dc] bg-white shadow-[0_14px_40px_rgba(7,24,39,0.06)]">
                   <div className="grid lg:grid-cols-2">
                     <Link href={`/projects/${category.slug}`} aria-label={`اكتشف مجال ${category.title}`} className="group relative block aspect-[4/5] overflow-hidden rounded-[1.8rem] bg-[#26384a] lg:m-3 lg:aspect-auto lg:min-h-[620px]">
-                    <Image src={settings?.categoryHomeImageUrls?.[category.slug] || (category.slug === "palms" ? firstPalmPhoto?.imageUrl : undefined) || category.image} alt={category.imageAlt} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition duration-700 group-hover:scale-[1.03]" />
+                    <Image src={settings?.categoryHomeImageUrls?.[category.slug] || categoryPhotoUrls[category.slug] || category.image} alt={category.imageAlt} fill unoptimized sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover transition duration-700 group-hover:scale-[1.03]" />
                       <div className="absolute inset-0 bg-gradient-to-t from-[#071827]/75 via-transparent to-transparent" />
                       <span className="absolute right-5 top-5 rounded-full border border-white/25 bg-[#071827]/50 px-4 py-2 text-xs font-black text-[#f6dfb1] backdrop-blur">0{index + 1} <span className="mx-1 text-white/50">/</span> {category.eyebrow}</span>
                       <span className="absolute bottom-5 left-5 flex h-12 w-12 items-center justify-center rounded-full bg-[#f2c46d] text-[#071827] transition group-hover:-translate-x-1"><ArrowLeft size={19} /></span>

@@ -1,4 +1,4 @@
-import { safeFetch } from "../../../lib/sanity";
+import { safeFetchFresh } from "../../../lib/sanity";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,7 +8,7 @@ import Footer from "../../../components/layout/Footer";
 import type { Metadata } from "next";
 
 async function getProject(slug: string) {
-  return safeFetch<any>(`
+  return safeFetchFresh<any>(`
     *[_type == "project" && slug.current == $slug && category in ["palms", "fences", "trees", "olives", "structures"]][0] {
       title, description, category, "imageUrl": mainImage.asset->url, _createdAt
     }

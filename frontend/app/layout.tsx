@@ -25,11 +25,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
     title: {
-      default: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والمظلات`,
+      default: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والسواتر`,
       template: `%s | ${siteName}`,
     },
     description,
-    keywords: ["سياج ونخيل المملكة", "زراعة النخيل", "تركيب الشبوك", "زراعة الأشجار", "مزارع الزيتون", "الهناجر والمظلات", "المملكة العربية السعودية"],
+    keywords: ["سياج ونخيل المملكة", "زراعة النخيل", "تركيب الشبوك", "زراعة الأشجار", "مزارع الزيتون", "الهناجر والسواتر", "المملكة العربية السعودية"],
     authors: [{ name: siteName }],
     creator: siteName,
     publisher: siteName,
@@ -45,14 +45,14 @@ export async function generateMetadata(): Promise<Metadata> {
       type: "website",
       locale: "ar_SA",
       ...(siteUrl ? { url: siteUrl } : {}),
-      title: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والمظلات`,
+      title: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والسواتر`,
       description,
       siteName,
       images: [shareImage],
     },
     twitter: {
       card: "summary_large_image",
-      title: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والمظلات`,
+      title: `${siteName} | النخيل والشبوك والأشجار والزيتون والهناجر والسواتر`,
       description,
       images: [shareImage],
     },
@@ -91,7 +91,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       "@type": "OfferCatalog",
       "name": "مجالات سياج ونخيل المملكة",
       "itemListElement": [
-        ...["النخيل", "الشبوك", "الأشجار", "الزيتون", "الهناجر والمظلات"].map((name) => ({
+        ...["النخيل", "الشبوك", "الأشجار", "الزيتون", "هناجر وسواتر"].map((name) => ({
           "@type": "Offer",
           "itemOffered": { "@type": "Service", name },
         })),
