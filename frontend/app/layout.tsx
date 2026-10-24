@@ -39,7 +39,7 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: siteName,
     publisher: siteName,
     verification: {
-      google: "bOyx4ccipeKQO1eUBTPzaiA88qklJqjqH9U0aJTMcvQ",
+      google: ["bOyx4ccipeKQO1eUBTPzaiA88qklJqjqH9U0aJTMcvQ", "kHp0HoG2JwtcXvGk4id5oXaRyFCJ1Cp19R_2c2LlOZY"],
     },
     formatDetection: {
       telephone: true,
