@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import Script from "next/script";
 import { BRAND_DESCRIPTION, BRAND_NAME } from "../lib/brand";
@@ -13,7 +13,7 @@ const cairo = Cairo({
 
 export async function generateMetadata(): Promise<Metadata> {
   const siteName = BRAND_NAME;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.nakheel-seyaj.com";
   const description = BRAND_DESCRIPTION;
   const shareImage = "https://images.unsplash.com/photo-1500382017468-9049fed747ef?q=85&w=1200&h=630&fit=crop";
   const logo = await safeFetchFresh<{ logoImageUrl?: string }>(
@@ -29,10 +29,18 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${siteName}`,
     },
     description,
-    keywords: ["سياج ونخيل المملكة", "زراعة النخيل", "تركيب الشبوك", "زراعة الأشجار", "مزارع الزيتون", "الهناجر والسواتر", "المملكة العربية السعودية"],
+    keywords: [
+      "مقاول شبوك", "تركيب شبوك", "شبوك مزارع", "شبوك أمنية", "تسوير مزارع", "تسوير أراضي", "شبوك شايكة", "سياج مزارع", "شبوك زراعية", "أسعار تركيب الشبوك", "مقاول شبوك الرياض", "شبوك مجلفنة", "سياج أمني",
+      "توريد نخيل", "زراعة نخيل", "نخيل واشنطني", "نخيل عربي", "نخيل خلاص", "نخيل سكري", "تكريب وتلقيح نخيل", "زراعة أشجار الزيتون", "مشاتل نخيل", "تنسيق مزارع", "تنسيق حدائق", "غرس نخيل",
+      "تركيب هناجر", "بناء هناجر", "مقاول هناجر ومستودعات", "هناجر حديد", "تركيب سواتر", "مظلات وسواتر", "سواتر حديد", "سواتر مزارع", "مستودعات تجارية", "شينكو",
+      "مؤسسة مقاولات عامة", "سياج ونخيل المملكة", "مقاول مزارع معتمد", "مقاولات زراعية السعودية"
+    ],
     authors: [{ name: siteName }],
     creator: siteName,
     publisher: siteName,
+    verification: {
+      google: "bOyx4ccipeKQO1eUBTPzaiA88qklJqjqH9U0aJTMcvQ",
+    },
     formatDetection: {
       telephone: true,
       address: true,
@@ -73,7 +81,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const siteName = BRAND_NAME;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.nakheel-seyaj.com";
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   const jsonLd = {

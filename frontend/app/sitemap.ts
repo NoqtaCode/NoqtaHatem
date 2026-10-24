@@ -1,8 +1,8 @@
-import type { MetadataRoute } from "next";
+﻿import type { MetadataRoute } from "next";
 import { categories } from "../lib/brand";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.nakheel-seyaj.com";
   if (!baseUrl) return [];
 
   const staticUrls = ["", "/about", "/services", "/gallery", "/contact"];
